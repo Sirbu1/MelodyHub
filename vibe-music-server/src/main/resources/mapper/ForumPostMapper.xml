@@ -1,0 +1,199 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="cn.edu.seig.vibemusic.mapper.ForumPostMapper">
+
+    <!-- 帖子列表VO映射 -->
+    <resultMap id="ForumPostVOMap" type="cn.edu.seig.vibemusic.model.vo.ForumPostVO">
+        <id column="id" property="postId"/>
+        <result column="user_id" property="userId"/>
+        <result column="username" property="username"/>
+        <result column="user_avatar" property="userAvatar"/>
+        <result column="title" property="title"/>
+        <result column="content" property="content"/>
+        <result column="view_count" property="viewCount"/>
+        <result column="reply_count" property="replyCount"/>
+        <result column="like_count" property="likeCount"/>
+        <result column="is_top" property="isTop"/>
+        <result column="type" property="type"/>
+        <result column="requirement_type" property="requirementType"/>
+        <result column="time_requirement" property="timeRequirement"/>
+        <result column="budget" property="budget"/>
+        <result column="style_description" property="styleDescription"/>
+        <result column="reference_attachment" property="referenceAttachment"/>
+        <result column="audit_status" property="auditStatus"/>
+        <result column="create_time" property="createTime"/>
+        <result column="update_time" property="updateTime"/>
+    </resultMap>
+
+    <!-- 帖子详情VO映射 -->
+    <resultMap id="ForumPostDetailVOMap" type="cn.edu.seig.vibemusic.model.vo.ForumPostDetailVO">
+        <id column="id" property="postId"/>
+        <result column="user_id" property="userId"/>
+        <result column="username" property="username"/>
+        <result column="user_avatar" property="userAvatar"/>
+        <result column="title" property="title"/>
+        <result column="content" property="content"/>
+        <result column="view_count" property="viewCount"/>
+        <result column="reply_count" property="replyCount"/>
+        <result column="like_count" property="likeCount"/>
+        <result column="is_top" property="isTop"/>
+        <result column="type" property="type"/>
+        <result column="requirement_type" property="requirementType"/>
+        <result column="time_requirement" property="timeRequirement"/>
+        <result column="budget" property="budget"/>
+        <result column="style_description" property="styleDescription"/>
+        <result column="reference_attachment" property="referenceAttachment"/>
+        <result column="audit_status" property="auditStatus"/>
+        <result column="create_time" property="createTime"/>
+        <result column="update_time" property="updateTime"/>
+    </resultMap>
+
+    <!-- 分页查询帖子列表 -->
+    <select id="selectPostPage" resultMap="ForumPostVOMap">
+        SELECT
+            p.id,
+            p.user_id,
+            u.username,
+            u.user_avatar,
+            p.title,
+            SUBSTRING(p.content, 1, 200) as content,
+            p.view_count,
+            p.reply_count,
+            p.like_count,
+            p.is_top,
+            p.type,
+            p.requirement_type,
+            p.time_requirement,
+            p.budget,
+            p.style_description,
+            p.reference_attachment,
+            p.create_time,
+            p.update_time
+        FROM tb_forum_post p
+        LEFT JOIN tb_user u ON p.user_id = u.id
+        WHERE p.status = 0 AND p.audit_status = 1
+        <if test="keyword != null and keyword != ''">
+            AND (p.title LIKE CONCAT('%', #{keyword}, '%') OR p.content LIKE CONCAT('%', #{keyword}, '%'))
+        </if>
+        <if test="type != null">
+            AND p.type = #{type}
+        </if>
+        ORDER BY p.is_top DESC, p.create_time DESC
+    </select>
+
+    <!-- 查询帖子详情 -->
+    <select id="selectPostDetail" resultMap="ForumPostDetailVOMap">
+        SELECT
+            p.id,
+            p.user_id,
+            u.username,
+            u.user_avatar,
+            p.title,
+            p.content,
+            p.view_count,
+            p.reply_count,
+            p.like_count,
+            p.is_top,
+            p.type,
+            p.requirement_type,
+            p.time_requirement,
+            p.budget,
+            p.style_description,
+            p.reference_attachment,
+            p.audit_status,
+            p.create_time,
+            p.update_time
+        FROM tb_forum_post p
+        LEFT JOIN tb_user u ON p.user_id = u.id
+        WHERE p.id = #{postId} AND p.status = 0
+        <choose>
+            <when test="userId != null and userId != 0">
+                AND (p.audit_status = 1 OR p.user_id = #{userId})
+            </when>
+            <otherwise>
+                AND p.audit_status = 1
+            </otherwise>
+        </choose>
+    </select>
+
+    <!-- 管理员查询帖子详情（可以查看所有状态的帖子） -->
+    <select id="selectPostDetailForAdmin" resultMap="ForumPostDetailVOMap">
+        SELECT
+            p.id,
+            p.user_id,
+            u.username,
+            u.user_avatar,
+            p.title,
+            p.content,
+            p.view_count,
+            p.reply_count,
+            p.like_count,
+            p.is_top,
+            p.type,
+            p.requirement_type,
+            p.time_requirement,
+            p.budget,
+            p.style_description,
+            p.reference_attachment,
+            p.audit_status,
+            p.create_time,
+            p.update_time
+        FROM tb_forum_post p
+        LEFT JOIN tb_user u ON p.user_id = u.id
+        WHERE p.id = #{postId} AND p.status = 0
+    </select>
+
+    <!-- 增加浏览次数 -->
+    <update id="incrementViewCount">
+        UPDATE tb_forum_post
+        SET view_count = view_count + 1
+        WHERE id = #{postId}
+    </update>
+
+    <!-- 增加回复数量 -->
+    <update id="incrementReplyCount">
+        UPDATE tb_forum_post
+        SET reply_count = reply_count + 1
+        WHERE id = #{postId}
+    </update>
+
+    <!-- 减少回复数量 -->
+    <update id="decrementReplyCount">
+        UPDATE tb_forum_post
+        SET reply_count = CASE WHEN reply_count > 0 THEN reply_count - 1 ELSE 0 END
+        WHERE id = #{postId}
+    </update>
+
+    <!-- 获取用户帖子列表（按状态筛选） -->
+    <select id="getUserPosts" resultMap="ForumPostVOMap">
+        SELECT
+            p.id,
+            p.user_id,
+            u.username,
+            u.user_avatar,
+            p.title,
+            SUBSTRING(p.content, 1, 200) as content,
+            p.view_count,
+            p.reply_count,
+            p.like_count,
+            p.is_top,
+            p.type,
+            p.requirement_type,
+            p.time_requirement,
+            p.budget,
+            p.style_description,
+            p.reference_attachment,
+            p.audit_status,
+            p.create_time,
+            p.update_time
+        FROM tb_forum_post p
+        LEFT JOIN tb_user u ON p.user_id = u.id
+        WHERE p.user_id = #{userId} AND p.status = 0
+        <if test="auditStatus != null">
+            AND p.audit_status = #{auditStatus}
+        </if>
+        ORDER BY p.create_time DESC
+    </select>
+
+</mapper>
+

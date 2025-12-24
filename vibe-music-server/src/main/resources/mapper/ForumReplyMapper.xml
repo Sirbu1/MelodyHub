@@ -1,0 +1,104 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="cn.edu.seig.vibemusic.mapper.ForumReplyMapper">
+
+    <!-- 回复VO映射 -->
+    <resultMap id="ForumReplyVOMap" type="cn.edu.seig.vibemusic.model.vo.ForumReplyVO">
+        <id column="id" property="replyId"/>
+        <result column="post_id" property="postId"/>
+        <result column="user_id" property="userId"/>
+        <result column="username" property="username"/>
+        <result column="user_avatar" property="userAvatar"/>
+        <result column="content" property="content"/>
+        <result column="parent_id" property="parentId"/>
+        <result column="parent_username" property="parentUsername"/>
+        <result column="like_count" property="likeCount"/>
+        <result column="audit_status" property="auditStatus"/>
+        <result column="create_time" property="createTime"/>
+    </resultMap>
+
+    <!-- 分页查询帖子的回复列表（只查询一级回复） -->
+    <select id="selectReplyPage" resultMap="ForumReplyVOMap">
+        SELECT
+            r.id,
+            r.post_id,
+            r.user_id,
+            u.username,
+            u.user_avatar,
+            r.content,
+            r.parent_id,
+            NULL as parent_username,
+            r.like_count,
+            r.create_time
+        FROM tb_forum_reply r
+        LEFT JOIN tb_user u ON r.user_id = u.id
+        WHERE r.post_id = #{postId} AND r.status = 0 AND r.parent_id IS NULL AND r.audit_status = 1
+        ORDER BY r.create_time ASC
+    </select>
+
+    <!-- 查询某回复的子回复列表 -->
+    <select id="selectChildReplies" resultMap="ForumReplyVOMap">
+        SELECT
+            r.id,
+            r.post_id,
+            r.user_id,
+            u.username,
+            u.user_avatar,
+            r.content,
+            r.parent_id,
+            pu.username as parent_username,
+            r.like_count,
+            r.create_time
+        FROM tb_forum_reply r
+        LEFT JOIN tb_user u ON r.user_id = u.id
+        LEFT JOIN tb_forum_reply pr ON r.parent_id = pr.id
+        LEFT JOIN tb_user pu ON pr.user_id = pu.id
+        WHERE r.parent_id = #{parentId} AND r.status = 0 AND r.audit_status = 1
+        ORDER BY r.create_time ASC
+    </select>
+
+    <!-- 查询回复详情 -->
+    <select id="selectReplyDetail" resultMap="ForumReplyVOMap">
+        SELECT
+            r.id,
+            r.post_id,
+            r.user_id,
+            u.username,
+            u.user_avatar,
+            r.content,
+            r.parent_id,
+            pu.username as parent_username,
+            r.like_count,
+            r.create_time
+        FROM tb_forum_reply r
+        LEFT JOIN tb_user u ON r.user_id = u.id
+        LEFT JOIN tb_forum_reply pr ON r.parent_id = pr.id
+        LEFT JOIN tb_user pu ON pr.user_id = pu.id
+        WHERE r.id = #{replyId} AND r.status = 0
+    </select>
+
+    <!-- 获取用户回复列表（按状态筛选） -->
+    <select id="getUserReplies" resultMap="ForumReplyVOMap">
+        SELECT
+            r.id,
+            r.post_id,
+            r.user_id,
+            u.username,
+            u.user_avatar,
+            r.content,
+            r.parent_id,
+            NULL as parent_username,
+            r.like_count,
+            r.audit_status,
+            r.create_time
+        FROM tb_forum_reply r
+        LEFT JOIN tb_user u ON r.user_id = u.id
+        WHERE r.user_id = #{userId} AND r.status = 0
+        <if test="auditStatus != null">
+            AND r.audit_status = #{auditStatus}
+        </if>
+        ORDER BY r.create_time DESC
+    </select>
+
+</mapper>
+

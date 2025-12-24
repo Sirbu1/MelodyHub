@@ -1,0 +1,562 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<architecture>
+    <project>
+        <name>Vibe Music Server</name>
+        <description>音乐播放器后端服务 - 体系结构逻辑模型</description>
+        <version>0.0.1-SNAPSHOT</version>
+    </project>
+
+    <!-- 一、表现层 (Presentation Layer) -->
+    <layer name="表现层" package="cn.edu.seig.vibemusic.controller" responsibility="接收HTTP请求、参数验证、调用业务层、返回响应">
+        <component name="UserController" path="/user" description="用户相关接口">
+            <methods>
+                <method name="register" type="POST" path="/register" description="用户注册"/>
+                <method name="login" type="POST" path="/login" description="用户登录"/>
+                <method name="sendVerificationCode" type="GET" path="/sendVerificationCode" description="发送验证码"/>
+                <method name="getUserInfo" type="GET" path="/getUserInfo" description="获取用户信息"/>
+            </methods>
+            <dependencies>
+                <dependency>IUserService</dependency>
+                <dependency>MinioService</dependency>
+            </dependencies>
+        </component>
+
+        <component name="SongController" path="/song" description="歌曲相关接口">
+            <methods>
+                <method name="getAllSongs" type="GET" path="/getAllSongs" description="获取所有歌曲"/>
+                <method name="getSongDetail" type="GET" path="/getSongDetail/{id}" description="获取歌曲详情"/>
+                <method name="uploadSong" type="POST" path="/uploadSong" description="上传歌曲"/>
+            </methods>
+            <dependencies>
+                <dependency>ISongService</dependency>
+            </dependencies>
+        </component>
+
+        <component name="PlaylistController" path="/playlist" description="歌单相关接口">
+            <dependencies>
+                <dependency>IPlaylistService</dependency>
+            </dependencies>
+        </component>
+
+        <component name="ArtistController" path="/artist" description="歌手相关接口">
+            <dependencies>
+                <dependency>IArtistService</dependency>
+            </dependencies>
+        </component>
+
+        <component name="CommentController" path="/comment" description="评论相关接口">
+            <dependencies>
+                <dependency>ICommentService</dependency>
+            </dependencies>
+        </component>
+
+        <component name="UserFavoriteController" path="/favorite" description="收藏相关接口">
+            <dependencies>
+                <dependency>IUserFavoriteService</dependency>
+            </dependencies>
+        </component>
+
+        <component name="BannerController" path="/banner" description="轮播图相关接口">
+            <dependencies>
+                <dependency>IBannerService</dependency>
+            </dependencies>
+        </component>
+
+        <component name="FeedbackController" path="/feedback" description="反馈相关接口">
+            <dependencies>
+                <dependency>IFeedbackService</dependency>
+            </dependencies>
+        </component>
+
+        <component name="ForumController" path="/forum" description="论坛相关接口">
+            <dependencies>
+                <dependency>IForumPostService</dependency>
+                <dependency>IForumReplyService</dependency>
+            </dependencies>
+        </component>
+
+        <component name="AdminController" path="/admin" description="管理员相关接口">
+            <dependencies>
+                <dependency>IAdminService</dependency>
+            </dependencies>
+        </component>
+
+        <component name="PlaylistBindingController" path="/playlistBinding" description="歌单绑定相关接口">
+            <dependencies>
+                <dependency>IPlaylistBindingService</dependency>
+            </dependencies>
+        </component>
+
+        <component name="GenreController" path="/genre" description="流派相关接口">
+            <dependencies>
+                <dependency>IGenreService</dependency>
+            </dependencies>
+        </component>
+
+        <component name="StyleController" path="/style" description="风格相关接口">
+            <dependencies>
+                <dependency>IStyleService</dependency>
+            </dependencies>
+        </component>
+
+        <!-- 拦截器 -->
+        <interceptor name="LoginInterceptor" description="登录拦截器、Token验证、权限控制">
+            <dependencies>
+                <dependency>StringRedisTemplate</dependency>
+                <dependency>RolePermissionManager</dependency>
+            </dependencies>
+        </interceptor>
+
+        <!-- 异常处理 -->
+        <handler name="GlobalExceptionHandler" description="全局异常处理">
+            <handles>
+                <exception type="SQLIntegrityConstraintViolationException" description="SQL完整性约束异常"/>
+                <exception type="MethodArgumentNotValidException" description="参数验证异常"/>
+            </handles>
+        </handler>
+    </layer>
+
+    <!-- 二、业务逻辑层 (Business Logic Layer) -->
+    <layer name="业务逻辑层" package="cn.edu.seig.vibemusic.service" responsibility="业务逻辑处理、事务管理、数据转换、缓存管理">
+        
+        <!-- Service接口 -->
+        <interface name="IUserService" implementation="UserServiceImpl">
+            <methods>
+                <method name="register" description="用户注册"/>
+                <method name="login" description="用户登录"/>
+                <method name="sendVerificationCode" description="发送验证码"/>
+                <method name="verifyVerificationCode" description="验证验证码"/>
+            </methods>
+            <cache cacheName="userCache"/>
+            <dependencies>
+                <dependency>UserMapper</dependency>
+                <dependency>StringRedisTemplate</dependency>
+                <dependency>EmailService</dependency>
+                <dependency>MinioService</dependency>
+            </dependencies>
+        </interface>
+
+        <interface name="ISongService" implementation="SongServiceImpl">
+            <methods>
+                <method name="getAllSongs" description="获取所有歌曲" cacheable="true"/>
+                <method name="getSongDetail" description="获取歌曲详情" cacheable="true"/>
+                <method name="addSong" description="添加歌曲" cacheEvict="songCache"/>
+                <method name="updateSong" description="更新歌曲" cacheEvict="songCache"/>
+            </methods>
+            <cache cacheName="songCache"/>
+            <dependencies>
+                <dependency>SongMapper</dependency>
+                <dependency>RedisTemplate</dependency>
+                <dependency>MinioService</dependency>
+            </dependencies>
+        </interface>
+
+        <interface name="IPlaylistService" implementation="PlaylistServiceImpl">
+            <cache cacheName="playlistCache"/>
+            <dependencies>
+                <dependency>PlaylistMapper</dependency>
+                <dependency>MinioService</dependency>
+            </dependencies>
+        </interface>
+
+        <interface name="IArtistService" implementation="ArtistServiceImpl">
+            <cache cacheName="artistCache"/>
+            <dependencies>
+                <dependency>ArtistMapper</dependency>
+                <dependency>MinioService</dependency>
+            </dependencies>
+        </interface>
+
+        <interface name="ICommentService" implementation="CommentServiceImpl">
+            <dependencies>
+                <dependency>CommentMapper</dependency>
+            </dependencies>
+            <cacheEvict cacheNames="songCache,playlistCache"/>
+        </interface>
+
+        <interface name="IUserFavoriteService" implementation="UserFavoriteServiceImpl">
+            <cache cacheName="userFavoriteCache"/>
+            <dependencies>
+                <dependency>UserFavoriteMapper</dependency>
+            </dependencies>
+        </interface>
+
+        <interface name="IBannerService" implementation="BannerServiceImpl">
+            <cache cacheName="bannerCache"/>
+            <dependencies>
+                <dependency>BannerMapper</dependency>
+                <dependency>MinioService</dependency>
+            </dependencies>
+        </interface>
+
+        <interface name="IFeedbackService" implementation="FeedbackServiceImpl">
+            <cache cacheName="feedbackCache"/>
+            <dependencies>
+                <dependency>FeedbackMapper</dependency>
+            </dependencies>
+        </interface>
+
+        <interface name="IForumPostService" implementation="ForumPostServiceImpl">
+            <dependencies>
+                <dependency>ForumPostMapper</dependency>
+            </dependencies>
+        </interface>
+
+        <interface name="IForumReplyService" implementation="ForumReplyServiceImpl">
+            <dependencies>
+                <dependency>ForumReplyMapper</dependency>
+            </dependencies>
+        </interface>
+
+        <interface name="IAdminService" implementation="AdminServiceImpl">
+            <dependencies>
+                <dependency>AdminMapper</dependency>
+                <dependency>StringRedisTemplate</dependency>
+            </dependencies>
+        </interface>
+
+        <interface name="IPlaylistBindingService" implementation="PlaylistBindingServiceImpl">
+            <dependencies>
+                <dependency>PlaylistBindingMapper</dependency>
+            </dependencies>
+        </interface>
+
+        <interface name="IGenreService" implementation="GenreServiceImpl">
+            <dependencies>
+                <dependency>GenreMapper</dependency>
+            </dependencies>
+        </interface>
+
+        <interface name="IStyleService" implementation="StyleServiceImpl">
+            <dependencies>
+                <dependency>StyleMapper</dependency>
+            </dependencies>
+        </interface>
+
+        <interface name="IAuditService" implementation="AuditServiceImpl">
+            <dependencies>
+                <dependency>SongMapper</dependency>
+                <dependency>PlaylistMapper</dependency>
+            </dependencies>
+        </interface>
+
+        <!-- 辅助服务 -->
+        <service name="EmailService" implementation="EmailServiceImpl" description="邮件服务">
+            <methods>
+                <method name="sendVerificationCodeEmail" description="发送验证码邮件"/>
+            </methods>
+        </service>
+
+        <service name="MinioService" implementation="MinioServiceImpl" description="文件存储服务">
+            <methods>
+                <method name="uploadFile" description="上传文件"/>
+                <method name="deleteFile" description="删除文件"/>
+            </methods>
+            <storage>MinIO Object Storage</storage>
+        </service>
+    </layer>
+
+    <!-- 三、数据访问层 (Data Access Layer) -->
+    <layer name="数据访问层" package="cn.edu.seig.vibemusic.mapper" responsibility="数据库CRUD操作、SQL执行、ORM映射">
+        
+        <mapper name="UserMapper" entity="User" table="tb_user" xmlFile="UserMapper.xml">
+            <extends>BaseMapper&lt;User&gt;</extends>
+            <methods>
+                <method name="selectById" type="inherited" description="根据ID查询"/>
+                <method name="insert" type="inherited" description="插入"/>
+                <method name="update" type="inherited" description="更新"/>
+                <method name="delete" type="inherited" description="删除"/>
+                <method name="selectList" type="inherited" description="查询列表"/>
+            </methods>
+        </mapper>
+
+        <mapper name="SongMapper" entity="Song" table="tb_song" xmlFile="SongMapper.xml">
+            <extends>BaseMapper&lt;Song&gt;</extends>
+            <customMethods>
+                <method name="getSongsWithArtist" description="查询歌曲及歌手信息" sqlLocation="SongMapper.xml"/>
+                <method name="getSongsWithArtistName" description="根据歌手查询歌曲" sqlLocation="SongMapper.xml"/>
+            </customMethods>
+        </mapper>
+
+        <mapper name="PlaylistMapper" entity="Playlist" table="tb_playlist" xmlFile="PlaylistMapper.xml">
+            <extends>BaseMapper&lt;Playlist&gt;</extends>
+        </mapper>
+
+        <mapper name="ArtistMapper" entity="Artist" table="tb_artist" xmlFile="ArtistMapper.xml">
+            <extends>BaseMapper&lt;Artist&gt;</extends>
+        </mapper>
+
+        <mapper name="CommentMapper" entity="Comment" table="tb_comment" xmlFile="CommentMapper.xml">
+            <extends>BaseMapper&lt;Comment&gt;</extends>
+        </mapper>
+
+        <mapper name="UserFavoriteMapper" entity="UserFavorite" table="tb_user_favorite" xmlFile="UserFavoriteMapper.xml">
+            <extends>BaseMapper&lt;UserFavorite&gt;</extends>
+        </mapper>
+
+        <mapper name="BannerMapper" entity="Banner" table="tb_banner" xmlFile="BannerMapper.xml">
+            <extends>BaseMapper&lt;Banner&gt;</extends>
+        </mapper>
+
+        <mapper name="FeedbackMapper" entity="Feedback" table="tb_feedback" xmlFile="FeedbackMapper.xml">
+            <extends>BaseMapper&lt;Feedback&gt;</extends>
+        </mapper>
+
+        <mapper name="ForumPostMapper" entity="ForumPost" table="tb_forum_post" xmlFile="ForumPostMapper.xml">
+            <extends>BaseMapper&lt;ForumPost&gt;</extends>
+        </mapper>
+
+        <mapper name="ForumReplyMapper" entity="ForumReply" table="tb_forum_reply" xmlFile="ForumReplyMapper.xml">
+            <extends>BaseMapper&lt;ForumReply&gt;</extends>
+        </mapper>
+
+        <mapper name="AdminMapper" entity="Admin" table="tb_admin" xmlFile="AdminMapper.xml">
+            <extends>BaseMapper&lt;Admin&gt;</extends>
+        </mapper>
+
+        <mapper name="PlaylistBindingMapper" entity="PlaylistBinding" table="tb_playlist_binding" xmlFile="PlaylistBindingMapper.xml">
+            <extends>BaseMapper&lt;PlaylistBinding&gt;</extends>
+        </mapper>
+
+        <mapper name="GenreMapper" entity="Genre" table="tb_genre" xmlFile="GenreMapper.xml">
+            <extends>BaseMapper&lt;Genre&gt;</extends>
+        </mapper>
+
+        <mapper name="StyleMapper" entity="Style" table="tb_style" xmlFile="StyleMapper.xml">
+            <extends>BaseMapper&lt;Style&gt;</extends>
+        </mapper>
+
+        <!-- MyBatis-Plus配置 -->
+        <config name="MyBatisPlusConfig" description="MyBatis-Plus配置">
+            <features>
+                <feature name="分页插件" description="自动分页"/>
+                <feature name="条件构造器" description="QueryWrapper"/>
+                <feature name="逻辑删除" description="软删除"/>
+            </features>
+        </config>
+    </layer>
+
+    <!-- 四、数据存储层 (Data Storage Layer) -->
+    <layer name="数据存储层" responsibility="持久化数据存储">
+        
+        <!-- MySQL关系数据库 -->
+        <storage name="MySQL" type="关系数据库" port="3306" database="vibe_music">
+            <tables>
+                <table name="tb_user" description="用户表"/>
+                <table name="tb_song" description="歌曲表"/>
+                <table name="tb_playlist" description="歌单表"/>
+                <table name="tb_artist" description="歌手表"/>
+                <table name="tb_comment" description="评论表"/>
+                <table name="tb_user_favorite" description="用户收藏表"/>
+                <table name="tb_banner" description="轮播图表"/>
+                <table name="tb_feedback" description="反馈表"/>
+                <table name="tb_forum_post" description="论坛帖子表"/>
+                <table name="tb_forum_reply" description="论坛回复表"/>
+                <table name="tb_admin" description="管理员表"/>
+                <table name="tb_playlist_binding" description="歌单绑定表"/>
+                <table name="tb_genre" description="流派表"/>
+                <table name="tb_style" description="风格表"/>
+            </tables>
+            <connectionPool>Druid</connectionPool>
+            <orm>MyBatis-Plus</orm>
+        </storage>
+
+        <!-- Redis缓存/会话存储 -->
+        <storage name="Redis" type="内存数据库" port="6379" database="1">
+            <usage>
+                <use name="JWT Token存储" description="存储用户登录Token，过期时间6小时">
+                    <keyPattern>token字符串</keyPattern>
+                    <valueType>String</valueType>
+                    <ttl>6 hours</ttl>
+                    <operations>
+                        <operation name="set" description="登录时存储"/>
+                        <operation name="get" description="拦截器验证"/>
+                        <operation name="delete" description="登出时删除"/>
+                    </operations>
+                </use>
+                
+                <use name="验证码存储" description="存储邮箱验证码，过期时间5分钟">
+                    <keyPattern>verificationCode:{email}</keyPattern>
+                    <valueType>String</valueType>
+                    <ttl>5 minutes</ttl>
+                    <operations>
+                        <operation name="set" description="发送验证码时存储"/>
+                        <operation name="get" description="验证验证码时读取"/>
+                        <operation name="delete" description="使用后删除"/>
+                    </operations>
+                </use>
+                
+                <use name="数据缓存" description="缓存查询结果，提升性能">
+                    <cacheNames>
+                        <cache name="songCache" description="歌曲缓存"/>
+                        <cache name="playlistCache" description="歌单缓存"/>
+                        <cache name="artistCache" description="歌手缓存"/>
+                        <cache name="userCache" description="用户缓存"/>
+                        <cache name="bannerCache" description="轮播图缓存"/>
+                        <cache name="feedbackCache" description="反馈缓存"/>
+                        <cache name="userFavoriteCache" description="收藏缓存"/>
+                    </cacheNames>
+                    <keyPattern>{cacheName}::{methodParams}</keyPattern>
+                    <valueType>JSON (Object)</valueType>
+                    <ttl>6 hours</ttl>
+                    <management>Spring Cache (@Cacheable, @CacheEvict)</management>
+                </use>
+            </usage>
+            <configuration>
+                <serializer key="StringRedisSerializer" description="Key序列化器"/>
+                <serializer value="Jackson2JsonRedisSerializer" description="Value序列化器"/>
+                <configFile>RedisConfig.java</configFile>
+            </configuration>
+        </storage>
+
+        <!-- MinIO对象存储 -->
+        <storage name="MinIO" type="对象存储" port="9000" consolePort="9001" bucket="vibe-music-data">
+            <usage>
+                <use name="音乐文件存储" description="存储.mp3音乐文件">
+                    <pathPattern>songs/{uuid}-{filename}</pathPattern>
+                </use>
+                <use name="图片存储" description="存储用户头像、歌曲封面、歌单封面、轮播图">
+                    <pathPatterns>
+                        <pattern>avatars/{uuid}-{filename}"</pattern>
+                        <pattern>covers/{uuid}-{filename}"</pattern>
+                        <pattern>banners/{uuid}-{filename}"</pattern>
+                    </pathPatterns>
+                </use>
+            </usage>
+            <configuration>
+                <endpoint>http://127.0.0.1:9000</endpoint>
+                <accessKey>minioadmin</accessKey>
+                <secretKey>minioadmin</secretKey>
+                <configFile>MinioConfig.java</configFile>
+                <service>MinioService</service>
+            </configuration>
+        </storage>
+    </layer>
+
+    <!-- 五、配置层 -->
+    <configuration>
+        <config name="RedisConfig" description="Redis配置">
+            <beans>
+                <bean name="redisTemplate" type="RedisTemplate&lt;Object, Object&gt;"/>
+                <bean name="cacheManager" type="RedisCacheManager"/>
+            </beans>
+        </config>
+
+        <config name="MyBatisPlusConfig" description="MyBatis-Plus配置">
+            <plugins>
+                <plugin name="PaginationInterceptor" description="分页插件"/>
+            </plugins>
+        </config>
+
+        <config name="MinioConfig" description="MinIO配置">
+            <bean name="minioClient" type="MinioClient"/>
+        </config>
+
+        <config name="WebConfig" description="Web配置">
+            <interceptors>
+                <interceptor ref="LoginInterceptor"/>
+            </interceptors>
+        </config>
+
+        <config name="CorsConfig" description="跨域配置"/>
+
+        <config name="MailConfig" description="邮件服务配置"/>
+    </configuration>
+
+    <!-- 六、工具层 -->
+    <utilities package="cn.edu.seig.vibemusic.util">
+        <util name="JwtUtil" description="JWT Token生成和解析"/>
+        <util name="ThreadLocalUtil" description="线程局部变量管理"/>
+        <util name="BindingResultUtil" description="参数验证结果处理"/>
+        <util name="TypeConversionUtil" description="类型转换"/>
+        <util name="RandomCodeUtil" description="随机码生成"/>
+    </utilities>
+
+    <!-- 七、数据模型层 -->
+    <models package="cn.edu.seig.vibemusic.model">
+        <entities package="entity">
+            <entity name="User" table="tb_user"/>
+            <entity name="Song" table="tb_song"/>
+            <entity name="Playlist" table="tb_playlist"/>
+            <entity name="Artist" table="tb_artist"/>
+            <entity name="Comment" table="tb_comment"/>
+            <entity name="UserFavorite" table="tb_user_favorite"/>
+            <entity name="Banner" table="tb_banner"/>
+            <entity name="Feedback" table="tb_feedback"/>
+            <entity name="ForumPost" table="tb_forum_post"/>
+            <entity name="ForumReply" table="tb_forum_reply"/>
+            <entity name="Admin" table="tb_admin"/>
+            <entity name="PlaylistBinding" table="tb_playlist_binding"/>
+            <entity name="Genre" table="tb_genre"/>
+            <entity name="Style" table="tb_style"/>
+        </entities>
+
+        <dtos package="dto">
+            <dto name="UserRegisterDTO" description="用户注册DTO"/>
+            <dto name="UserLoginDTO" description="用户登录DTO"/>
+            <dto name="SongDTO" description="歌曲查询DTO"/>
+            <dto name="SongAddDTO" description="歌曲添加DTO"/>
+            <dto name="PlaylistDTO" description="歌单查询DTO"/>
+            <!-- 更多DTO... -->
+        </dtos>
+
+        <vos package="vo">
+            <vo name="UserVO" description="用户视图对象"/>
+            <vo name="SongVO" description="歌曲视图对象"/>
+            <vo name="SongDetailVO" description="歌曲详情视图对象"/>
+            <vo name="PlaylistVO" description="歌单视图对象"/>
+            <!-- 更多VO... -->
+        </vos>
+    </models>
+
+    <!-- 八、数据流转示例 -->
+    <dataFlowExamples>
+        <example name="用户注册流程">
+            <step number="1" description="前端发送注册请求" layer="Frontend"/>
+            <step number="2" description="UserController接收请求并验证参数" layer="Controller"/>
+            <step number="3" description="UserServiceImpl验证验证码（从Redis读取）" layer="Service"/>
+            <step number="4" description="UserMapper查询用户名/邮箱是否已存在" layer="Mapper"/>
+            <step number="5" description="MySQL执行查询" layer="Database"/>
+            <step number="6" description="UserMapper插入新用户" layer="Mapper"/>
+            <step number="7" description="MySQL执行插入" layer="Database"/>
+            <step number="8" description="删除Redis中的验证码" layer="Service → Redis"/>
+            <step number="9" description="清除用户缓存" layer="Service → Redis"/>
+            <step number="10" description="返回注册结果" layer="Controller → Frontend"/>
+        </example>
+
+        <example name="查询歌曲列表（缓存命中）">
+            <step number="1" description="前端发送查询请求" layer="Frontend"/>
+            <step number="2" description="SongController接收请求" layer="Controller"/>
+            <step number="3" description="SongServiceImpl检查Redis缓存" layer="Service"/>
+            <step number="4" description="缓存命中，直接返回缓存数据" layer="Service → Redis"/>
+            <step number="5" description="返回查询结果" layer="Controller → Frontend"/>
+        </example>
+
+        <example name="查询歌曲列表（缓存未命中）">
+            <step number="1" description="前端发送查询请求" layer="Frontend"/>
+            <step number="2" description="SongController接收请求" layer="Controller"/>
+            <step number="3" description="SongServiceImpl检查Redis缓存" layer="Service"/>
+            <step number="4" description="缓存未命中，调用SongMapper查询" layer="Service → Mapper"/>
+            <step number="5" description="MySQL执行SQL查询" layer="Mapper → Database"/>
+            <step number="6" description="SongMapper返回查询结果" layer="Mapper → Service"/>
+            <step number="7" description="数据转换为VO并存入Redis缓存" layer="Service → Redis"/>
+            <step number="8" description="返回查询结果" layer="Controller → Frontend"/>
+        </example>
+    </dataFlowExamples>
+
+    <!-- 九、技术栈 -->
+    <technologyStack>
+        <framework name="Spring Boot" version="3.3.7" description="应用框架"/>
+        <framework name="Spring MVC" description="Web框架"/>
+        <framework name="Spring Cache" description="缓存框架"/>
+        <framework name="MyBatis-Plus" version="3.5.9" description="ORM框架"/>
+        <framework name="MyBatis" description="持久层框架"/>
+        <database name="MySQL" version="8.0+" description="关系数据库"/>
+        <cache name="Redis" description="缓存/内存数据库"/>
+        <storage name="MinIO" description="对象存储"/>
+        <security name="JWT" description="身份认证"/>
+        <pool name="Druid" version="1.2.18" description="数据库连接池"/>
+        <tool name="Lombok" description="简化代码"/>
+    </technologyStack>
+</architecture>
+
