@@ -1,4 +1,5 @@
 <script setup lang="ts">
+import { ref, watch, onMounted, onActivated, onBeforeUnmount } from 'vue'
 import { 
   getForumPostDetail, 
   getForumReplies, 
@@ -428,8 +429,67 @@ watch(() => route.params.id, (newId, oldId) => {
   }
 })
 
+// 定时刷新间隔（30秒）
+const REFRESH_INTERVAL = 30000
+// 定时器引用
+let refreshTimer: number | null = null
+
+// 启动定时刷新（用于检测审核通过的回复）
+const startAutoRefresh = () => {
+  // 清除已存在的定时器
+  if (refreshTimer) {
+    clearInterval(refreshTimer)
+  }
+  // 每30秒自动刷新一次，以检测新审核通过的回复
+  refreshTimer = window.setInterval(() => {
+    // 只在页面可见时刷新
+    if (document.visibilityState === 'visible') {
+      getReplies()
+      // 同时刷新帖子详情，以更新回复数等统计信息
+      getPostDetail()
+    }
+  }, REFRESH_INTERVAL)
+}
+
+// 停止定时刷新
+const stopAutoRefresh = () => {
+  if (refreshTimer) {
+    clearInterval(refreshTimer)
+  }
+  refreshTimer = null
+}
+
+// 监听页面可见性变化
+const handleVisibilityChange = () => {
+  if (document.visibilityState === 'visible') {
+    // 页面变为可见时，立即刷新一次，然后启动定时刷新
+    loadData()
+    startAutoRefresh()
+  } else {
+    // 页面不可见时，停止定时刷新以节省资源
+    stopAutoRefresh()
+  }
+}
+
 onMounted(() => {
   loadData()
+  // 启动定时刷新
+  startAutoRefresh()
+  // 监听页面可见性变化
+  document.addEventListener('visibilitychange', handleVisibilityChange)
+})
+
+// 当页面被激活时（从其他页面返回），刷新数据
+onActivated(() => {
+  loadData()
+  // 启动定时刷新
+  startAutoRefresh()
+})
+
+// 组件卸载时清理
+onBeforeUnmount(() => {
+  stopAutoRefresh()
+  document.removeEventListener('visibilitychange', handleVisibilityChange)
 })
 </script>
 

@@ -17,6 +17,7 @@ import cn.edu.seig.vibemusic.util.TypeConversionUtil;
 import com.baomidou.mybatisplus.core.metadata.IPage;
 import com.baomidou.mybatisplus.extension.plugins.pagination.Page;
 import com.baomidou.mybatisplus.extension.service.impl.ServiceImpl;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import org.springframework.web.multipart.MultipartFile;
@@ -33,6 +34,7 @@ import java.util.Objects;
  * @author sunpingli
  * @since 2025-01-09
  */
+@Slf4j
 @Service
 public class ForumPostServiceImpl extends ServiceImpl<ForumPostMapper, ForumPost> implements IForumPostService {
 
@@ -310,6 +312,99 @@ public class ForumPostServiceImpl extends ServiceImpl<ForumPostMapper, ForumPost
         }
 
         return Result.success("更新接单状态成功");
+    }
+
+    /**
+     * 更新帖子并重新提交审核
+     *
+     * @param forumPostAddDTO 帖子信息（包含postId）
+     * @param referenceAttachmentFile 参考附件文件（可选）
+     * @return 结果
+     */
+    @Override
+    public Result updatePost(ForumPostAddDTO forumPostAddDTO, MultipartFile referenceAttachmentFile) {
+        // 获取当前用户ID
+        Map<String, Object> map = ThreadLocalUtil.get();
+        if (map == null) {
+            return Result.error("用户未登录");
+        }
+        
+        Object userIdObj = map.get(JwtClaimsConstant.USER_ID);
+        Long userId = TypeConversionUtil.toLong(userIdObj);
+        
+        // 检查postId是否存在
+        if (forumPostAddDTO.getPostId() == null) {
+            return Result.error("帖子ID不能为空");
+        }
+        
+        // 查询帖子信息
+        ForumPost forumPost = forumPostMapper.selectById(forumPostAddDTO.getPostId());
+        if (forumPost == null) {
+            return Result.error(MessageConstant.NOT_FOUND);
+        }
+        
+        // 检查是否是帖子作者
+        if (!Objects.equals(forumPost.getUserId(), userId)) {
+            return Result.error(MessageConstant.NO_PERMISSION);
+        }
+        
+        try {
+            // 验证必填字段
+            if (forumPostAddDTO.getTitle() == null || forumPostAddDTO.getTitle().trim().isEmpty()) {
+                return Result.error("帖子标题不能为空");
+            }
+            if (forumPostAddDTO.getContent() == null || forumPostAddDTO.getContent().trim().isEmpty()) {
+                return Result.error("帖子内容不能为空");
+            }
+            
+            // 更新帖子基本信息
+            forumPost.setTitle(forumPostAddDTO.getTitle().trim());
+            forumPost.setContent(forumPostAddDTO.getContent().trim());
+            if (forumPostAddDTO.getType() != null) {
+                forumPost.setType(forumPostAddDTO.getType());
+            }
+            
+            // 如果是需求类型，更新需求相关字段
+            if (forumPostAddDTO.getType() != null && forumPostAddDTO.getType() == 1) {
+                forumPost.setRequirementType(forumPostAddDTO.getRequirementType());
+                forumPost.setTimeRequirement(forumPostAddDTO.getTimeRequirement());
+                forumPost.setBudget(forumPostAddDTO.getBudget());
+                forumPost.setStyleDescription(forumPostAddDTO.getStyleDescription());
+            }
+            
+            // 更新参考附件（如果提供了新附件）
+            if (referenceAttachmentFile != null && !referenceAttachmentFile.isEmpty()) {
+                // 删除旧附件
+                String oldAttachment = forumPost.getReferenceAttachment();
+                if (oldAttachment != null && !oldAttachment.isEmpty()) {
+                    try {
+                        minioService.deleteFile(oldAttachment);
+                    } catch (Exception e) {
+                        log.warn("删除旧附件文件失败: " + oldAttachment, e);
+                    }
+                }
+                // 上传新附件
+                String folder = forumPostAddDTO.getType() != null && forumPostAddDTO.getType() == 1 
+                    ? "requirement-attachments" 
+                    : "post-attachments";
+                String attachmentUrl = minioService.uploadFile(referenceAttachmentFile, folder);
+                forumPost.setReferenceAttachment(attachmentUrl);
+            }
+            
+            // 重置审核状态为待审核
+            forumPost.setAuditStatus(0);
+            forumPost.setUpdateTime(LocalDateTime.now());
+            
+            // 更新数据库
+            if (forumPostMapper.updateById(forumPost) == 0) {
+                return Result.error(MessageConstant.UPDATE + MessageConstant.FAILED);
+            }
+            
+            return Result.success("帖子更新成功，已重新提交审核");
+        } catch (Exception e) {
+            log.error("更新帖子失败", e);
+            return Result.error("更新失败：" + e.getMessage());
+        }
     }
 
 }

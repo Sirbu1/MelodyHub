@@ -30,5 +30,10 @@ public class ForumReplyAddDTO {
      */
     private Long parentId;
 
+    /**
+     * 回复ID（更新时使用）
+     */
+    private Long replyId;
+
 }
 

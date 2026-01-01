@@ -4,24 +4,29 @@ import cn.edu.seig.vibemusic.constant.JwtClaimsConstant;
 import cn.edu.seig.vibemusic.constant.MessageConstant;
 import cn.edu.seig.vibemusic.enumeration.LikeStatusEnum;
 import cn.edu.seig.vibemusic.enumeration.RoleEnum;
+import cn.edu.seig.vibemusic.mapper.ArtistMapper;
 import cn.edu.seig.vibemusic.mapper.GenreMapper;
 import cn.edu.seig.vibemusic.mapper.SongMapper;
 import cn.edu.seig.vibemusic.mapper.StyleMapper;
 import cn.edu.seig.vibemusic.mapper.UserFavoriteMapper;
+import cn.edu.seig.vibemusic.mapper.UserMapper;
 import cn.edu.seig.vibemusic.model.dto.SongAddDTO;
 import cn.edu.seig.vibemusic.model.dto.SongAndArtistDTO;
 import cn.edu.seig.vibemusic.model.dto.SongDTO;
 import cn.edu.seig.vibemusic.model.dto.SongUpdateDTO;
 import cn.edu.seig.vibemusic.model.dto.SongUploadDTO;
+import cn.edu.seig.vibemusic.model.entity.Artist;
 import cn.edu.seig.vibemusic.model.entity.Genre;
 import cn.edu.seig.vibemusic.model.entity.Song;
 import cn.edu.seig.vibemusic.model.entity.Style;
+import cn.edu.seig.vibemusic.model.entity.User;
 import cn.edu.seig.vibemusic.model.entity.UserFavorite;
 import cn.edu.seig.vibemusic.model.vo.SongAdminVO;
 import cn.edu.seig.vibemusic.model.vo.SongDetailVO;
 import cn.edu.seig.vibemusic.model.vo.SongVO;
 import cn.edu.seig.vibemusic.result.PageResult;
 import cn.edu.seig.vibemusic.result.Result;
+import cn.edu.seig.vibemusic.service.IArtistService;
 import cn.edu.seig.vibemusic.service.ISongService;
 import cn.edu.seig.vibemusic.service.MinioService;
 import cn.edu.seig.vibemusic.util.JwtUtil;
@@ -68,6 +73,12 @@ public class SongServiceImpl extends ServiceImpl<SongMapper, Song> implements IS
     @Autowired
     private GenreMapper genreMapper;
     @Autowired
+    private UserMapper userMapper;
+    @Autowired
+    private ArtistMapper artistMapper;
+    @Autowired
+    private IArtistService artistService;
+    @Autowired
     private MinioService minioService;
     @Autowired
     private RedisTemplate redisTemplate;
@@ -79,7 +90,7 @@ public class SongServiceImpl extends ServiceImpl<SongMapper, Song> implements IS
      * @return 歌曲列表
      */
     @Override
-    @Cacheable(key = "#songDTO.pageNum + '-' + #songDTO.pageSize + '-' + #songDTO.songName + '-' + #songDTO.artistName + '-' + #songDTO.album")
+    @Cacheable(key = "#songDTO.pageNum + '-' + #songDTO.pageSize + '-' + #songDTO.songName + '-' + #songDTO.artistName")
     public Result<PageResult<SongVO>> getAllSongs(SongDTO songDTO, HttpServletRequest request) {
         // 获取请求头中的 token
         String token = request.getHeader("Authorization");
@@ -94,7 +105,7 @@ public class SongServiceImpl extends ServiceImpl<SongMapper, Song> implements IS
 
         // 查询歌曲列表
         Page<SongVO> page = new Page<>(songDTO.getPageNum(), songDTO.getPageSize());
-        IPage<SongVO> songPage = songMapper.getSongsWithArtist(page, songDTO.getSongName(), songDTO.getArtistName(), songDTO.getAlbum());
+        IPage<SongVO> songPage = songMapper.getSongsWithArtist(page, songDTO.getSongName(), songDTO.getArtistName());
         if (songPage.getRecords().isEmpty()) {
             return Result.success(MessageConstant.DATA_NOT_FOUND, new PageResult<>(0L, null));
         }
@@ -140,11 +151,11 @@ public class SongServiceImpl extends ServiceImpl<SongMapper, Song> implements IS
      * @return 歌曲列表
      */
     @Override
-    @Cacheable(key = "#songDTO.pageNum + '-' + #songDTO.pageSize + '-' + #songDTO.songName + '-' + #songDTO.album + '-' + #songDTO.artistId")
+    @Cacheable(key = "#songDTO.pageNum + '-' + #songDTO.pageSize + '-' + #songDTO.songName + '-' + #songDTO.artistId")
     public Result<PageResult<SongAdminVO>> getAllSongsByArtist(SongAndArtistDTO songDTO) {
         // 分页查询
         Page<SongAdminVO> page = new Page<>(songDTO.getPageNum(), songDTO.getPageSize());
-        IPage<SongAdminVO> songPage = songMapper.getSongsWithArtistName(page, songDTO.getArtistId(), songDTO.getSongName(), songDTO.getAlbum());
+        IPage<SongAdminVO> songPage = songMapper.getSongsWithArtistName(page, songDTO.getArtistId(), songDTO.getSongName());
 
         if (songPage.getRecords().isEmpty()) {
             return Result.success(MessageConstant.DATA_NOT_FOUND, new PageResult<>(0L, null));
@@ -344,7 +355,6 @@ public class SongServiceImpl extends ServiceImpl<SongMapper, Song> implements IS
         Song songInDB = songMapper.selectOne(new QueryWrapper<Song>()
                 .eq("artist_id", songAddDTO.getArtistId())
                 .eq("name", songAddDTO.getSongName())
-                .eq("album", songAddDTO.getAlbum())
                 .orderByDesc("id")
                 .last("LIMIT 1"));
 
@@ -549,6 +559,17 @@ public class SongServiceImpl extends ServiceImpl<SongMapper, Song> implements IS
         Object userIdObj = map.get(JwtClaimsConstant.USER_ID);
         Long userId = TypeConversionUtil.toLong(userIdObj);
 
+        // 检查用户是否填写了完整的歌手信息（生日、国籍、简介）
+        User user = userMapper.selectById(userId);
+        if (user == null) {
+            return Result.error("用户不存在");
+        }
+        if (user.getBirth() == null 
+            || user.getArea() == null || user.getArea().trim().isEmpty()
+            || user.getIntroduction() == null || user.getIntroduction().trim().isEmpty()) {
+            return Result.error("上传歌曲前，请先在个人信息页面填写完整的歌手信息（生日、国籍、简介）");
+        }
+
         // 检查当日上传限制（最多10首）
         Integer todayUploads = songMapper.countUserTodayUploads(userId);
         if (todayUploads >= 10) {
@@ -585,7 +606,6 @@ public class SongServiceImpl extends ServiceImpl<SongMapper, Song> implements IS
             Song song = new Song();
             song.setSongName(songUploadDTO.getSongName());
             song.setStyle(songUploadDTO.getStyle());
-            song.setAlbum(null); // 原创歌曲可以没有专辑，设置为null
             song.setCoverUrl(coverUrl);
             song.setAudioUrl(audioUrl);
             song.setArtistId(null); // 原创歌曲没有关联艺术家，设置为null
@@ -601,6 +621,68 @@ public class SongServiceImpl extends ServiceImpl<SongMapper, Song> implements IS
 
             if (songMapper.insert(song) == 0) {
                 return Result.error(MessageConstant.ADD + MessageConstant.FAILED);
+            }
+
+            // 上传成功后，创建或更新歌手记录（原创歌手）
+            try {
+                // 查询是否已存在同名歌手（原创歌手）
+                QueryWrapper<Artist> artistQueryWrapper = new QueryWrapper<>();
+                artistQueryWrapper.eq("name", user.getUsername())
+                                  .eq("gender", 3); // 原创歌手类型为3
+                Artist existingArtist = artistMapper.selectOne(artistQueryWrapper);
+
+                if (existingArtist != null) {
+                    // 更新现有歌手信息
+                    log.info("更新现有原创歌手信息，userId: {}, artistId: {}", userId, existingArtist.getArtistId());
+                    existingArtist.setGender(3); // 确保类型为原创歌手
+                    existingArtist.setBirth(user.getBirth());
+                    existingArtist.setArea(user.getArea());
+                    existingArtist.setIntroduction(user.getIntroduction());
+                    // 如果用户有头像，也更新歌手头像
+                    if (user.getUserAvatar() != null) {
+                        existingArtist.setAvatar(user.getUserAvatar());
+                    }
+                    int updateResult = artistMapper.updateById(existingArtist);
+                    if (updateResult > 0) {
+                        log.info("成功更新原创歌手信息，userId: {}, artistId: {}", userId, existingArtist.getArtistId());
+                    } else {
+                        log.warn("更新原创歌手信息失败，userId: {}, artistId: {}", userId, existingArtist.getArtistId());
+                    }
+                } else {
+                    // 创建新歌手记录（默认类型为原创歌手）
+                    log.info("创建新原创歌手记录，userId: {}, username: {}", userId, user.getUsername());
+                    Artist artist = new Artist();
+                    artist.setArtistName(user.getUsername());
+                    artist.setGender(3); // 原创歌手类型为3
+                    artist.setBirth(user.getBirth());
+                    artist.setArea(user.getArea());
+                    artist.setIntroduction(user.getIntroduction());
+                    // 如果用户有头像，也设置歌手头像
+                    if (user.getUserAvatar() != null) {
+                        artist.setAvatar(user.getUserAvatar());
+                    }
+                    int insertResult = artistMapper.insert(artist);
+                    if (insertResult > 0) {
+                        log.info("成功创建原创歌手记录，userId: {}, username: {}, artistId: {}", 
+                                userId, user.getUsername(), artist.getArtistId());
+                    } else {
+                        log.warn("创建原创歌手记录失败，userId: {}, username: {}", userId, user.getUsername());
+                    }
+                }
+                // 清除歌手缓存，确保新创建的歌手能立即显示
+                try {
+                    // 清除所有以 "artistCache" 开头的缓存
+                    Set<String> keys = redisTemplate.keys("artistCache::*");
+                    if (keys != null && !keys.isEmpty()) {
+                        redisTemplate.delete(keys);
+                        log.info("已清除歌手缓存，清除数量: {}", keys.size());
+                    }
+                } catch (Exception cacheException) {
+                    log.warn("清除歌手缓存失败", cacheException);
+                }
+            } catch (Exception e) {
+                // 记录错误但不影响歌曲上传
+                log.error("创建或更新歌手记录失败，userId: {}, username: {}", userId, user.getUsername(), e);
             }
 
             return Result.success("歌曲上传成功，等待审核", song.getSongId());
@@ -730,6 +812,145 @@ public class SongServiceImpl extends ServiceImpl<SongMapper, Song> implements IS
         }
 
         return Result.success(MessageConstant.DELETE + MessageConstant.SUCCESS);
+    }
+
+    /**
+     * 更新原创歌曲并重新提交审核
+     *
+     * @param songUploadDTO 更新信息（包含songId）
+     * @return 更新结果
+     */
+    @Override
+    @CacheEvict(cacheNames = "songCache", allEntries = true)
+    public Result updateOriginalSong(SongUploadDTO songUploadDTO) {
+        // 获取当前用户ID
+        Map<String, Object> map = ThreadLocalUtil.get();
+        if (map == null) {
+            log.error("ThreadLocal中没有用户信息");
+            return Result.error("用户未登录");
+        }
+        
+        Object userIdObj = map.get(JwtClaimsConstant.USER_ID);
+        Long userId = TypeConversionUtil.toLong(userIdObj);
+        
+        // 检查songId是否存在
+        if (songUploadDTO.getSongId() == null) {
+            return Result.error("歌曲ID不能为空");
+        }
+        
+        // 查询歌曲信息
+        Song song = songMapper.selectById(songUploadDTO.getSongId());
+        if (song == null) {
+            return Result.error(MessageConstant.SONG + MessageConstant.NOT_FOUND);
+        }
+        
+        // 检查是否是原创歌曲
+        if (song.getIsOriginal() == null || !song.getIsOriginal()) {
+            return Result.error("只能更新原创歌曲");
+        }
+        
+        // 检查是否是创建者
+        if (song.getCreatorId() == null || !song.getCreatorId().equals(userId)) {
+            return Result.error("只能更新自己上传的歌曲");
+        }
+        
+        // 验证文件格式和大小（如果提供了新文件）
+        if (songUploadDTO.getAudioFile() != null && !songUploadDTO.getAudioFile().isEmpty()) {
+            String validationError = validateUploadFiles(songUploadDTO);
+            if (validationError != null) {
+                return Result.error(validationError);
+            }
+        }
+        
+        try {
+            // 更新封面文件（如果提供了新封面）
+            if (songUploadDTO.getCoverFile() != null && !songUploadDTO.getCoverFile().isEmpty()) {
+                // 删除旧封面
+                String oldCover = song.getCoverUrl();
+                if (oldCover != null && !oldCover.isEmpty()) {
+                    try {
+                        minioService.deleteFile(oldCover);
+                    } catch (Exception e) {
+                        log.warn("删除旧封面文件失败: {}", oldCover, e);
+                    }
+                }
+                // 上传新封面
+                String coverUrl = minioService.uploadFile(songUploadDTO.getCoverFile(), "covers");
+                song.setCoverUrl(coverUrl);
+            }
+            
+            // 更新音频文件（如果提供了新音频）
+            if (songUploadDTO.getAudioFile() != null && !songUploadDTO.getAudioFile().isEmpty()) {
+                // 删除旧音频
+                String oldAudio = song.getAudioUrl();
+                if (oldAudio != null && !oldAudio.isEmpty()) {
+                    try {
+                        minioService.deleteFile(oldAudio);
+                    } catch (Exception e) {
+                        log.warn("删除旧音频文件失败: {}", oldAudio, e);
+                    }
+                }
+                // 上传新音频
+                String audioUrl = minioService.uploadFile(songUploadDTO.getAudioFile(), "songs");
+                song.setAudioUrl(audioUrl);
+                // 更新时长
+                if (songUploadDTO.getDuration() != null) {
+                    song.setDuration(songUploadDTO.getDuration());
+                }
+            }
+            
+            // 更新收款码文件（如果开启打赏且提供了新收款码）
+            if (songUploadDTO.getIsRewardEnabled() != null && songUploadDTO.getIsRewardEnabled()) {
+                if (songUploadDTO.getRewardQrFile() != null && !songUploadDTO.getRewardQrFile().isEmpty()) {
+                    // 删除旧收款码
+                    String oldRewardQr = song.getRewardQrUrl();
+                    if (oldRewardQr != null && !oldRewardQr.isEmpty()) {
+                        try {
+                            minioService.deleteFile(oldRewardQr);
+                        } catch (Exception e) {
+                            log.warn("删除旧收款码文件失败: {}", oldRewardQr, e);
+                        }
+                    }
+                    // 上传新收款码
+                    String rewardQrUrl = minioService.uploadFile(songUploadDTO.getRewardQrFile(), "reward-qr");
+                    song.setRewardQrUrl(rewardQrUrl);
+                }
+                song.setIsRewardEnabled(true);
+            } else {
+                // 如果关闭打赏，删除收款码
+                if (song.getRewardQrUrl() != null && !song.getRewardQrUrl().isEmpty()) {
+                    try {
+                        minioService.deleteFile(song.getRewardQrUrl());
+                    } catch (Exception e) {
+                        log.warn("删除收款码文件失败: {}", song.getRewardQrUrl(), e);
+                    }
+                    song.setRewardQrUrl(null);
+                }
+                song.setIsRewardEnabled(false);
+            }
+            
+            // 更新歌曲基本信息
+            if (songUploadDTO.getSongName() != null && !songUploadDTO.getSongName().trim().isEmpty()) {
+                song.setSongName(songUploadDTO.getSongName().trim());
+            }
+            if (songUploadDTO.getStyle() != null && !songUploadDTO.getStyle().trim().isEmpty()) {
+                song.setStyle(songUploadDTO.getStyle().trim());
+            }
+            
+            // 重置审核状态为待审核
+            song.setAuditStatus(0);
+            song.setUpdateTime(java.time.LocalDateTime.now());
+            
+            // 更新数据库
+            if (songMapper.updateById(song) == 0) {
+                return Result.error(MessageConstant.UPDATE + MessageConstant.FAILED);
+            }
+            
+            return Result.success("歌曲更新成功，已重新提交审核");
+        } catch (Exception e) {
+            log.error("更新原创歌曲失败", e);
+            return Result.error("更新失败：" + e.getMessage());
+        }
     }
 
     /**

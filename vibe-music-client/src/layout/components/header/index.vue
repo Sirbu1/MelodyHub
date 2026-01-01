@@ -49,7 +49,7 @@ watch(
     <button class="flex relative w-60" @click="router.push('/')">
       <img src="\logo.svg" alt="logo" class="w-10 h-10 ml-2" />
       <span class="ml-3 text-2xl font-bold flex justify-center items-center"
-        >Vibe Music</span
+        >Melody Hub</span
       >
     </button>
     <!-- 输入框和头像 -->

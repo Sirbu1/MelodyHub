@@ -41,7 +41,7 @@ CREATE TABLE `tb_forum_reply` (
 
 -- 插入测试数据
 INSERT INTO `tb_forum_post` (`user_id`, `title`, `content`, `view_count`, `reply_count`, `like_count`) VALUES
-(1, 'Welcome to Vibe Music Forum', 'This is our music community, welcome to share and discuss music here!', 100, 2, 10),
+(1, 'Welcome to Melody Hub Forum', 'This is our music community, welcome to share and discuss music here!', 100, 2, 10),
 (1, 'Share your favorite songs', 'What songs do you like? Share them here!', 50, 1, 5);
 
 INSERT INTO `tb_forum_reply` (`post_id`, `user_id`, `content`) VALUES

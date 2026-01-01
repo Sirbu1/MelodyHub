@@ -15,6 +15,7 @@ export const categories = ref<Category[]>([
             { id: '1', label: '男歌手', value: 0 },
             { id: '2', label: '女歌手', value: 1 },
             { id: '3', label: '组合/乐队', value: 2 },
+            { id: '4', label: '原创歌手', value: 3 },
         ],
     },
     // {

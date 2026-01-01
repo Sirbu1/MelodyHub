@@ -70,13 +70,26 @@ public class ArtistServiceImpl extends ServiceImpl<ArtistMapper, Artist> impleme
         Page<Artist> page = new Page<>(artistDTO.getPageNum(), artistDTO.getPageSize());
         QueryWrapper<Artist> queryWrapper = new QueryWrapper<>();
         // 根据 artistDTO 的条件构建查询条件
-        if (artistDTO.getArtistName() != null) {
+        if (artistDTO.getArtistName() != null && !artistDTO.getArtistName().trim().isEmpty()) {
             queryWrapper.like("name", artistDTO.getArtistName());
         }
         if (artistDTO.getGender() != null) {
             queryWrapper.eq("gender", artistDTO.getGender());
+            // 如果是原创歌手（gender=3），只显示上传过已通过审核的原创歌曲的用户
+            if (artistDTO.getGender() == 3) {
+                // 使用IN子查询：只返回那些用户名在"上传过已通过审核的原创歌曲的用户"列表中的歌手
+                queryWrapper.inSql("name", 
+                    "SELECT u.username FROM tb_user u " +
+                    "INNER JOIN tb_song s ON u.id = s.creator_id " +
+                    "WHERE s.is_original = true " +
+                    "AND (s.audit_status = 1 OR s.audit_status IS NULL) " +
+                    "GROUP BY u.username");
+            }
+        } else {
+            // 如果没有指定gender，排除原创歌手（gender=3），因为原创歌手需要特殊处理
+            queryWrapper.ne("gender", 3);
         }
-        if (artistDTO.getArea() != null) {
+        if (artistDTO.getArea() != null && !artistDTO.getArea().trim().isEmpty()) {
             queryWrapper.like("area", artistDTO.getArea());
         }
 
@@ -114,6 +127,16 @@ public class ArtistServiceImpl extends ServiceImpl<ArtistMapper, Artist> impleme
         }
         if (artistDTO.getGender() != null) {
             queryWrapper.eq("gender", artistDTO.getGender());
+            // 如果是原创歌手（gender=3），只显示上传过已通过审核的原创歌曲的用户
+            if (artistDTO.getGender() == 3) {
+                // 使用IN子查询：只返回那些用户名在"上传过已通过审核的原创歌曲的用户"列表中的歌手
+                queryWrapper.inSql("name", 
+                    "SELECT u.username FROM tb_user u " +
+                    "INNER JOIN tb_song s ON u.id = s.creator_id " +
+                    "WHERE s.is_original = true " +
+                    "AND (s.audit_status = 1 OR s.audit_status IS NULL) " +
+                    "GROUP BY u.username");
+            }
         }
         if (artistDTO.getArea() != null) {
             queryWrapper.like("area", artistDTO.getArea());
@@ -163,6 +186,17 @@ public class ArtistServiceImpl extends ServiceImpl<ArtistMapper, Artist> impleme
     @Override
     public Result<List<ArtistVO>> getRandomArtists() {
         QueryWrapper<Artist> queryWrapper = new QueryWrapper<>();
+        // 对于原创歌手（gender=3），只显示上传过已通过审核的原创歌曲的用户
+        queryWrapper.and(wrapper -> {
+            wrapper.ne("gender", 3)
+                    .or(w -> w.eq("gender", 3)
+                            .inSql("name", 
+                                "SELECT u.username FROM tb_user u " +
+                                "INNER JOIN tb_song s ON u.id = s.creator_id " +
+                                "WHERE s.is_original = true " +
+                                "AND (s.audit_status = 1 OR s.audit_status IS NULL) " +
+                                "GROUP BY u.username"));
+        });
         queryWrapper.last("ORDER BY RAND() LIMIT 10");
 
         List<Artist> artists = artistMapper.selectList(queryWrapper);
@@ -251,6 +285,16 @@ public class ArtistServiceImpl extends ServiceImpl<ArtistMapper, Artist> impleme
         QueryWrapper<Artist> queryWrapper = new QueryWrapper<>();
         if (gender != null) {
             queryWrapper.eq("gender", gender);
+            // 如果是原创歌手（gender=3），只统计上传过已通过审核的原创歌曲的用户
+            if (gender == 3) {
+                // 使用IN子查询：只返回那些用户名在"上传过已通过审核的原创歌曲的用户"列表中的歌手
+                queryWrapper.inSql("name", 
+                    "SELECT u.username FROM tb_user u " +
+                    "INNER JOIN tb_song s ON u.id = s.creator_id " +
+                    "WHERE s.is_original = true " +
+                    "AND (s.audit_status = 1 OR s.audit_status IS NULL) " +
+                    "GROUP BY u.username");
+            }
         }
         if (area != null) {
             queryWrapper.eq("area", area);

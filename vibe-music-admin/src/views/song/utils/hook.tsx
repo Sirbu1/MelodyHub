@@ -34,8 +34,7 @@ export function useSong(tableRef: Ref, treeRef: Ref) {
     pageSize: 10,
     // 左侧歌手树的id
     artistId: null,
-    songName: null,
-    album: null
+    songName: null
   });
   const formRef = ref();
   const dataList = ref([]);
@@ -86,12 +85,6 @@ export function useSong(tableRef: Ref, treeRef: Ref) {
       label: "歌手",
       prop: "artistName",
       minWidth: 160
-    },
-    {
-      label: "专辑",
-      prop: "album",
-      minWidth: 160,
-      width: 200
     },
     {
       label: "曲风",
@@ -240,7 +233,6 @@ export function useSong(tableRef: Ref, treeRef: Ref) {
           songId: item.songId,
           songName: item.songName,
           artistName: item.artistName,
-          album: item.album,
           cover: item.coverUrl,
           audio: item.audioUrl,
           style: item.style ? item.style.split(",") : [],
@@ -297,7 +289,6 @@ export function useSong(tableRef: Ref, treeRef: Ref) {
           artistName: row?.artistName ?? "",
           songId: row?.songId ?? 0,
           songName: row?.songName ?? "",
-          album: row?.album ?? "",
           style: row?.style ?? [],
           releaseTime: row?.releaseTime ?? ""
         }

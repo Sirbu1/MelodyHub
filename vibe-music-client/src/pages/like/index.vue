@@ -31,8 +31,7 @@ const getSongs = async () => {
         pageNum: currentPage.value,
         pageSize: pageSize.value,
         songName: searchKeyword.value,
-        artistName: '',
-        album: ''
+        artistName: ''
     })
     if (res.code === 0 && res.data) {
         const pageData = res.data as PageResult
@@ -59,7 +58,6 @@ const handlePlayAll = async () => {
         id: song.songId.toString(),
         title: song.songName,
         artist: song.artistName,
-        album: song.album,
         cover: song.coverUrl || coverImg,
         url: song.audioUrl,
         duration: parseFloat(song.duration) * 1000,

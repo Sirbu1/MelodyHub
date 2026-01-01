@@ -8,6 +8,8 @@ import lombok.Data;
 
 import java.io.Serial;
 import java.io.Serializable;
+import java.time.LocalDate;
+import com.fasterxml.jackson.annotation.JsonFormat;
 
 @Data
 public class UserDTO implements Serializable {
@@ -48,4 +50,20 @@ public class UserDTO implements Serializable {
      */
     @Pattern(regexp = "^.{0,100}$", message = MessageConstant.WORD_LIMIT_ERROR)
     private String introduction;
+
+    /**
+     * 用户类型：0-男，1-女，2-组合/乐队，3-原创歌手
+     */
+    private Integer gender;
+
+    /**
+     * 用户生日
+     */
+    @JsonFormat(pattern = "yyyy-MM-dd")
+    private LocalDate birth;
+
+    /**
+     * 用户国籍
+     */
+    private String area;
 }

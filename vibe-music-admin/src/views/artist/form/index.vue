@@ -28,6 +28,10 @@ const genderOptions = [
   {
     value: 2,
     label: "组合/乐队"
+  },
+  {
+    value: 3,
+    label: "原创歌手"
   }
 ];
 

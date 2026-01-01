@@ -8,6 +8,7 @@ import com.baomidou.mybatisplus.annotation.IdType;
 import com.baomidou.mybatisplus.annotation.TableId;
 
 import java.io.Serial;
+import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.io.Serializable;
 
@@ -89,6 +90,25 @@ public class User implements Serializable {
     @Pattern(regexp = "^.{0,100}$", message = MessageConstant.WORD_LIMIT_ERROR)
     @TableField("introduction")
     private String introduction;
+
+    /**
+     * 用户类型：0-男，1-女，2-组合/乐队，3-原创歌手
+     */
+    @TableField("gender")
+    private Integer gender;
+
+    /**
+     * 用户生日
+     */
+    @JsonFormat(pattern = "yyyy-MM-dd")
+    @TableField("birth")
+    private LocalDate birth;
+
+    /**
+     * 用户国籍
+     */
+    @TableField("area")
+    private String area;
 
     /**
      * 用户创建时间

@@ -71,4 +71,7 @@ public interface ISongService extends IService<Song> {
     // 删除原创歌曲（仅创建者可删除）
     Result deleteOriginalSong(Long songId);
 
+    // 更新原创歌曲并重新提交审核
+    Result updateOriginalSong(SongUploadDTO songUploadDTO);
+
 }

@@ -29,11 +29,6 @@ public class SongAdminVO implements Serializable {
     private String songName;
 
     /**
-     * 专辑
-     */
-    private String album;
-
-    /**
      * 歌词
      */
     private String lyric;

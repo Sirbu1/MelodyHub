@@ -78,6 +78,7 @@ const {
             <el-option label="男歌手" value="0" />
             <el-option label="女歌手" value="1" />
             <el-option label="组合/乐队" value="2" />
+            <el-option label="原创歌手" value="3" />
           </el-select>
         </el-form-item>
         <el-form-item>

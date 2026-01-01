@@ -34,7 +34,6 @@ const convertToTrackModel = (song: Song) => {
     id: song.songId.toString(),
     title: song.songName,
     artist: song.artistName,
-    album: song.album,
     cover: song.coverUrl || default_album,
     url: song.audioUrl,
     duration: Number(song.duration) || 0,

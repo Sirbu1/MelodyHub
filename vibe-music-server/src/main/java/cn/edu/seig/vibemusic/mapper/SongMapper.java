@@ -24,29 +24,10 @@ import java.util.List;
 @Mapper
 public interface SongMapper extends BaseMapper<Song> {
 
-    // 获取歌曲列表
-    @Select("""
-                SELECT 
-                    s.id AS songId, 
-                    s.name AS songName, 
-                    s.album, 
-                    s.duration, 
-                    s.cover_url AS coverUrl, 
-                    s.audio_url AS audioUrl, 
-                    s.release_time AS releaseTime, 
-                    a.name AS artistName
-                FROM tb_song s
-                LEFT JOIN tb_artist a ON s.artist_id = a.id
-                WHERE 
-                    (#{songName} IS NULL OR s.name LIKE CONCAT('%', #{songName}, '%'))
-                    AND (#{artistName} IS NULL OR a.name LIKE CONCAT('%', #{artistName}, '%'))
-                    AND (#{album} IS NULL OR s.album LIKE CONCAT('%', #{album}, '%'))
-                    AND (s.audit_status IS NULL OR s.audit_status = 1)
-            """)
+    // 获取歌曲列表（使用XML映射文件，支持动态SQL）
     IPage<SongVO> getSongsWithArtist(Page<SongVO> page,
                                      @Param("songName") String songName,
-                                     @Param("artistName") String artistName,
-                                     @Param("album") String album);
+                                     @Param("artistName") String artistName);
 
     // 获取歌曲列表
     @Select("""
@@ -54,41 +35,39 @@ public interface SongMapper extends BaseMapper<Song> {
                     s.id AS songId, 
                     s.name AS songName, 
                     s.artist_id AS artistId, 
-                    s.album, 
                     s.lyric, 
                     s.duration, 
                     s.style, 
                     s.cover_url AS coverUrl, 
                     s.audio_url AS audioUrl, 
                     s.release_time AS releaseTime, 
-                    a.name AS artistName
+                    COALESCE(a.name, u.username) AS artistName
                 FROM tb_song s
                 LEFT JOIN tb_artist a ON s.artist_id = a.id
+                LEFT JOIN tb_user u ON s.creator_id = u.id
                 WHERE 
                     (#{artistId} IS NULL OR s.artist_id = #{artistId})
                     AND(#{songName} IS NULL OR s.name LIKE CONCAT('%', #{songName}, '%'))
-                    AND (#{album} IS NULL OR s.album LIKE CONCAT('%', #{album}, '%'))
                     AND (s.audit_status IS NULL OR s.audit_status = 1)
                 ORDER BY s.release_time DESC
             """)
     IPage<SongAdminVO> getSongsWithArtistName(Page<SongAdminVO> page,
                                               @Param("artistId") Long artistId,
-                                              @Param("songName") String songName,
-                                              @Param("album") String album);
+                                              @Param("songName") String songName);
 
     // 获取随机歌曲列表
     @Select("""
                 SELECT 
                     s.id AS songId, 
                     s.name AS songName, 
-                    s.album, 
                     s.duration, 
                     s.cover_url AS coverUrl, 
                     s.audio_url AS audioUrl, 
                     s.release_time AS releaseTime, 
-                    a.name AS artistName
+                    COALESCE(a.name, u.username) AS artistName
                 FROM tb_song s
                 LEFT JOIN tb_artist a ON s.artist_id = a.id
+                LEFT JOIN tb_user u ON s.creator_id = u.id
                 WHERE (s.audit_status IS NULL OR s.audit_status = 1)
                 ORDER BY RAND() LIMIT 20
             """)
@@ -101,8 +80,7 @@ public interface SongMapper extends BaseMapper<Song> {
     IPage<SongVO> getSongsByIds(Page<SongVO> page,
                                 @Param("songIds") List<Long> songIds,
                                 @Param("songName") String songName,
-                                @Param("artistName") String artistName,
-                                @Param("album") String album);
+                                @Param("artistName") String artistName);
 
     // 根据用户收藏的歌曲id列表获取歌曲列表
     List<Long> getFavoriteSongStyles(@Param("favoriteSongIds") List<Long> favoriteSongIds);
@@ -130,7 +108,6 @@ public interface SongMapper extends BaseMapper<Song> {
                 SELECT
                     s.id AS songId,
                     s.name AS songName,
-                    s.album,
                     s.duration,
                     s.style,
                     s.cover_url AS coverUrl,

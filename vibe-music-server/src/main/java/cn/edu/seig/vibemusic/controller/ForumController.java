@@ -137,6 +137,45 @@ public class ForumController {
         return forumPostService.updateAcceptStatus(postId, isAccepted);
     }
 
+    /**
+     * 更新帖子并重新提交审核
+     *
+     * @param postId 帖子ID
+     * @param title 帖子标题
+     * @param content 帖子内容
+     * @param type 帖子类型：0-交流，1-需求
+     * @param requirementType 需求类型（仅需求时使用）
+     * @param timeRequirement 时间要求（仅需求时使用）
+     * @param budget 预算（仅需求时使用）
+     * @param styleDescription 风格描述（仅需求时使用）
+     * @param referenceAttachmentFile 参考附件文件（可选）
+     * @return 结果
+     */
+    @PostMapping("/post/{id}/update")
+    public Result updatePost(
+            @PathVariable("id") Long postId,
+            @RequestParam("title") String title,
+            @RequestParam("content") String content,
+            @RequestParam(value = "type", required = false) Integer type,
+            @RequestParam(value = "requirementType", required = false) String requirementType,
+            @RequestParam(value = "timeRequirement", required = false) String timeRequirement,
+            @RequestParam(value = "budget", required = false) String budget,
+            @RequestParam(value = "styleDescription", required = false) String styleDescription,
+            @RequestParam(value = "referenceAttachmentFile", required = false) MultipartFile referenceAttachmentFile) {
+        
+        ForumPostAddDTO forumPostAddDTO = new ForumPostAddDTO();
+        forumPostAddDTO.setPostId(postId);
+        forumPostAddDTO.setTitle(title);
+        forumPostAddDTO.setContent(content);
+        forumPostAddDTO.setType(type);
+        forumPostAddDTO.setRequirementType(requirementType);
+        forumPostAddDTO.setTimeRequirement(timeRequirement);
+        forumPostAddDTO.setBudget(budget);
+        forumPostAddDTO.setStyleDescription(styleDescription);
+        
+        return forumPostService.updatePost(forumPostAddDTO, referenceAttachmentFile);
+    }
+
     // ==================== 回复相关接口 ====================
 
     /**
@@ -228,6 +267,25 @@ public class ForumController {
             @RequestParam(value = "pageSize", defaultValue = "10") Integer pageSize,
             @RequestParam(value = "auditStatus", required = false) Integer auditStatus) {
         return forumReplyService.getUserReplies(userId, pageNum, pageSize, auditStatus);
+    }
+
+    /**
+     * 更新回复并重新提交审核
+     *
+     * @param replyId 回复ID
+     * @param forumReplyAddDTO 回复信息
+     * @return 结果
+     */
+    @PutMapping("/reply/{id}")
+    public Result updateReply(
+            @PathVariable("id") Long replyId,
+            @RequestBody ForumReplyAddDTO forumReplyAddDTO) {
+        // 更新时不需要验证postId，只需要验证content
+        if (forumReplyAddDTO.getContent() == null || forumReplyAddDTO.getContent().trim().isEmpty()) {
+            return Result.error("回复内容不能为空");
+        }
+        forumReplyAddDTO.setReplyId(replyId);
+        return forumReplyService.updateReply(forumReplyAddDTO);
     }
 
 }

@@ -165,4 +165,42 @@ public class SongController {
         }
     }
 
+    /**
+     * 更新原创歌曲并重新提交审核
+     *
+     * @param songId 歌曲ID
+     * @param songName 歌曲标题
+     * @param style 歌曲风格
+     * @param coverFile 封面文件（可选）
+     * @param audioFile 音频文件（可选）
+     * @param isRewardEnabled 是否开启打赏
+     * @param rewardQrFile 收款码文件（可选）
+     * @param duration 歌曲时长（可选）
+     * @return 更新结果
+     */
+    @PostMapping("/updateOriginalSong/{id}")
+    public Result updateOriginalSong(
+            @PathVariable("id") Long songId,
+            @RequestParam(value = "songName", required = false) String songName,
+            @RequestParam(value = "style", required = false) String style,
+            @RequestParam(value = "coverFile", required = false) MultipartFile coverFile,
+            @RequestParam(value = "audioFile", required = false) MultipartFile audioFile,
+            @RequestParam(value = "isRewardEnabled", required = false) Boolean isRewardEnabled,
+            @RequestParam(value = "rewardQrFile", required = false) MultipartFile rewardQrFile,
+            @RequestParam(value = "duration", required = false) String duration,
+            jakarta.servlet.http.HttpServletRequest request) {
+        
+        SongUploadDTO songUploadDTO = new SongUploadDTO();
+        songUploadDTO.setSongId(songId);
+        songUploadDTO.setSongName(songName);
+        songUploadDTO.setStyle(style);
+        songUploadDTO.setCoverFile(coverFile);
+        songUploadDTO.setAudioFile(audioFile);
+        songUploadDTO.setIsRewardEnabled(isRewardEnabled);
+        songUploadDTO.setRewardQrFile(rewardQrFile);
+        songUploadDTO.setDuration(duration);
+        
+        return songService.updateOriginalSong(songUploadDTO);
+    }
+
 }

@@ -30,6 +30,7 @@ import org.springframework.cache.annotation.Cacheable;
 import org.springframework.data.redis.core.StringRedisTemplate;
 import org.springframework.stereotype.Service;
 import org.springframework.util.DigestUtils;
+import lombok.extern.slf4j.Slf4j;
 
 import java.time.LocalDateTime;
 import java.util.HashMap;
@@ -45,6 +46,7 @@ import java.util.concurrent.TimeUnit;
  * @author sunpingli
  * @since 2025-01-09
  */
+@Slf4j
 @Service
 @CacheConfig(cacheNames = "userCache")
 public class UserServiceImpl extends ServiceImpl<UserMapper, User> implements IUserService {
@@ -206,9 +208,19 @@ public class UserServiceImpl extends ServiceImpl<UserMapper, User> implements IU
         BeanUtils.copyProperties(userDTO, user);
         user.setUpdateTime(LocalDateTime.now());
 
+        // 如果用户填写了完整的歌手信息（生日、国籍、简介），自动设置类型为原创歌手（gender=3）
+        if (userDTO.getBirth() != null 
+            && userDTO.getArea() != null && !userDTO.getArea().trim().isEmpty()
+            && userDTO.getIntroduction() != null && !userDTO.getIntroduction().trim().isEmpty()) {
+            user.setGender(3); // 自动设置为原创歌手
+        }
+
         if (userMapper.updateById(user) == 0) {
             return Result.error(MessageConstant.UPDATE + MessageConstant.FAILED);
         }
+
+        // 注意：歌手记录现在在上传歌曲时创建，这里不再创建
+
         return Result.success(MessageConstant.UPDATE + MessageConstant.SUCCESS);
     }
 

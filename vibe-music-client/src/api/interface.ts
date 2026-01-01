@@ -2,7 +2,6 @@ export interface PlaylistSong {
     songId: number
     songName: string
     artistName: string
-    album: string
     duration: string
     coverUrl: string | null
     audioUrl: string
@@ -35,7 +34,6 @@ export interface Song {
     songId: number
     songName: string
     artistName: string
-    album: string
     duration: string
     coverUrl: string
     audioUrl: string
@@ -79,7 +77,6 @@ export interface SongDetail {
     songId: number
     songName: string
     artistName: string
-    album: string
     lyric: string | null
     duration: string
     coverUrl: string

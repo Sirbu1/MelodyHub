@@ -29,11 +29,6 @@ public class SongUpdateDTO implements Serializable {
     private String songName;
 
     /**
-     * 专辑
-     */
-    private String album;
-
-    /**
      * 歌曲风格
      */
     private String style;

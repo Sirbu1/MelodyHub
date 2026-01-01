@@ -17,6 +17,7 @@ import cn.edu.seig.vibemusic.util.TypeConversionUtil;
 import com.baomidou.mybatisplus.core.metadata.IPage;
 import com.baomidou.mybatisplus.extension.plugins.pagination.Page;
 import com.baomidou.mybatisplus.extension.service.impl.ServiceImpl;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -34,6 +35,7 @@ import java.util.Objects;
  * @author sunpingli
  * @since 2025-01-09
  */
+@Slf4j
 @Service
 public class ForumReplyServiceImpl extends ServiceImpl<ForumReplyMapper, ForumReply> implements IForumReplyService {
 
@@ -214,6 +216,61 @@ public class ForumReplyServiceImpl extends ServiceImpl<ForumReplyMapper, ForumRe
         pageResult.setItems(replyPage.getRecords());
 
         return Result.success(pageResult);
+    }
+
+    /**
+     * 更新回复并重新提交审核
+     *
+     * @param forumReplyAddDTO 回复信息（包含replyId）
+     * @return 结果
+     */
+    @Override
+    @Transactional
+    public Result updateReply(ForumReplyAddDTO forumReplyAddDTO) {
+        // 获取当前用户ID
+        Map<String, Object> map = ThreadLocalUtil.get();
+        if (map == null) {
+            return Result.error("用户未登录");
+        }
+        
+        Object userIdObj = map.get(JwtClaimsConstant.USER_ID);
+        Long userId = TypeConversionUtil.toLong(userIdObj);
+        
+        // 检查replyId是否存在
+        if (forumReplyAddDTO.getReplyId() == null) {
+            return Result.error("回复ID不能为空");
+        }
+        
+        // 查询回复信息
+        ForumReply forumReply = forumReplyMapper.selectById(forumReplyAddDTO.getReplyId());
+        if (forumReply == null) {
+            return Result.error(MessageConstant.NOT_FOUND);
+        }
+        
+        // 检查是否是回复作者
+        if (!Objects.equals(forumReply.getUserId(), userId)) {
+            return Result.error(MessageConstant.NO_PERMISSION);
+        }
+        
+        try {
+            // 更新回复内容
+            if (forumReplyAddDTO.getContent() != null && !forumReplyAddDTO.getContent().trim().isEmpty()) {
+                forumReply.setContent(forumReplyAddDTO.getContent().trim());
+            }
+            
+            // 重置审核状态为待审核
+            forumReply.setAuditStatus(0);
+            
+            // 更新数据库
+            if (forumReplyMapper.updateById(forumReply) == 0) {
+                return Result.error(MessageConstant.UPDATE + MessageConstant.FAILED);
+            }
+            
+            return Result.success("回复更新成功，已重新提交审核");
+        } catch (Exception e) {
+            log.error("更新回复失败", e);
+            return Result.error("更新失败：" + e.getMessage());
+        }
     }
 
 }

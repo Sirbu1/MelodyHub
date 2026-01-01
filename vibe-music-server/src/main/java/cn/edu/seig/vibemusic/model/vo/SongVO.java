@@ -30,11 +30,6 @@ public class SongVO implements Serializable {
     private String artistName;
 
     /**
-     * 专辑
-     */
-    private String album;
-
-    /**
      * 歌曲风格
      */
     private String style;

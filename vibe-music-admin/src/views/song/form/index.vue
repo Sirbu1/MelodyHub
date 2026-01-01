@@ -11,7 +11,6 @@ const props = withDefaults(defineProps<FormProps>(), {
     artistName: "",
     songId: null,
     songName: "",
-    album: "",
     style: [],
     releaseTime: null
   })
@@ -103,16 +102,6 @@ defineExpose({ getRef });
             v-model="newFormInline.songName"
             clearable
             placeholder="请输入歌名"
-          />
-        </el-form-item>
-      </re-col>
-
-      <re-col :value="12" :xs="24" :sm="24">
-        <el-form-item label="专辑" prop="album" required>
-          <el-input
-            v-model="newFormInline.album"
-            clearable
-            placeholder="请输入专辑"
           />
         </el-form-item>
       </re-col>

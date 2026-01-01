@@ -182,7 +182,6 @@ watch(
           songId: song.songId,
           songName: song.songName,
           artistName: song.artistName,
-          album: song.album,
           duration: song.duration,
           coverUrl: song.coverUrl || coverImg,
           audioUrl: song.audioUrl,
@@ -196,7 +195,7 @@ watch(
           description: playlistData.introduction,
           coverImgUrl: playlistData.coverUrl || coverImg,
           creator: {
-            nickname: 'Vibe Music',
+            nickname: 'Melody Hub',
             avatarUrl: coverImg
           },
           trackCount: playlistData.songs.length,
@@ -220,7 +219,6 @@ const handlePlayAll = async () => {
     id: song.songId.toString(),
     title: song.songName,
     artist: song.artistName,
-    album: song.album,
     cover: song.coverUrl || coverImg,
     url: song.audioUrl,
     duration: parseFloat(song.duration) * 1000,

@@ -6,11 +6,12 @@ import FeedbackDialog from '@/components/Common/FeedbackDialog.vue'
 import defaultAvatar from '@/assets/user.jpg'
 import { ElMessage } from 'element-plus'
 import { logout } from '@/api/system'
-import { useRouter } from 'vue-router'
+import { useRouter, useRoute } from 'vue-router'
 
 const showLogin = ref(false)
 const user = UserStore()
 const router = useRouter()
+const route = useRoute()
 const feedbackDialogRef = ref<InstanceType<typeof FeedbackDialog> | null>(null)
 
 const handleLogout = async () => {
@@ -19,6 +20,13 @@ const handleLogout = async () => {
     if (response.code === 0) {
       user.clearUserInfo()
       ElMessage.success('退出登录成功')
+      // 如果当前在个人信息页面，则跳转到首页并刷新
+      if (route.path === '/user') {
+        router.push('/').then(() => {
+          // 刷新页面以确保清除所有状态
+          window.location.reload()
+        })
+      }
     } else {
       ElMessage.error(response.message || '退出失败')
     }
@@ -27,6 +35,13 @@ const handleLogout = async () => {
     ElMessage.error(error.message || '退出失败')
     // 即使请求失败也清除用户信息
     user.clearUserInfo()
+    // 如果当前在个人信息页面，则跳转到首页并刷新
+    if (route.path === '/user') {
+      router.push('/').then(() => {
+        // 刷新页面以确保清除所有状态
+        window.location.reload()
+      })
+    }
   }
 }
 

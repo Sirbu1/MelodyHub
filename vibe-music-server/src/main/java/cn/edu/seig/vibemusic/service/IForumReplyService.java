@@ -67,5 +67,13 @@ public interface IForumReplyService extends IService<ForumReply> {
      */
     Result getUserReplies(Long userId, Integer pageNum, Integer pageSize, Integer auditStatus);
 
+    /**
+     * 更新回复并重新提交审核
+     *
+     * @param forumReplyAddDTO 回复信息（包含replyId）
+     * @return 结果
+     */
+    Result updateReply(ForumReplyAddDTO forumReplyAddDTO);
+
 }
 

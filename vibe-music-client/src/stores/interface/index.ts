@@ -24,7 +24,6 @@ export interface trackModel {
   id: string // 歌曲id
   title: string // 歌曲名
   artist: string // 艺术家
-  album: string // 专辑
   cover: string // 封面
   url: string // 音频地址
   duration: number // 时长

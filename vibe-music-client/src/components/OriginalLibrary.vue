@@ -216,7 +216,6 @@ const tableSongList = computed(() => {
       songId: song.songId,
       songName: song.songName,
       artistName: song.creatorName || '原创音乐人', // 使用creatorName作为artistName
-      album: song.album || '原创专辑',
       duration: song.duration || '0',
       coverUrl: song.coverUrl || '',
       audioUrl: song.audioUrl || '',
@@ -346,7 +345,6 @@ const convertToTrackModel = (song: Song) => {
     id: song.songId.toString(),
     title: song.songName,
     artist: song.artistName,
-    album: song.album,
     cover: song.coverUrl || default_album,
     url: song.audioUrl,
     duration: Number(song.duration) || 0,

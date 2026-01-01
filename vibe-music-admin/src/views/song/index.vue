@@ -90,14 +90,6 @@ const openPreviewDialog = row => {
             class="!w-[180px]"
           />
         </el-form-item>
-        <el-form-item label="专辑：" prop="album">
-          <el-input
-            v-model="form.album"
-            placeholder="请输入专辑"
-            clearable
-            class="!w-[180px]"
-          />
-        </el-form-item>
         <el-form-item>
           <el-button
             type="primary"

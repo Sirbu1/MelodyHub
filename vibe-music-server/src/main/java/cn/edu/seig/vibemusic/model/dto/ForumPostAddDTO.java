@@ -59,5 +59,10 @@ public class ForumPostAddDTO {
      */
     private String referenceAttachment;
 
+    /**
+     * 帖子ID（更新时使用）
+     */
+    private Long postId;
+
 }
 

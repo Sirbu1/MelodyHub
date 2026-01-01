@@ -18,7 +18,7 @@ import {
   getForumReplies
 } from "@/api/system";
 import { ElForm, ElMessageBox } from "element-plus";
-import { type Ref, ref, toRaw, reactive, onMounted, watch } from "vue";
+import { type Ref, ref, toRaw, reactive, onMounted, onBeforeUnmount, watch } from "vue";
 
 export function useAudit(tableRef: Ref, activeTab: Ref<string>) {
   const form = reactive({
@@ -214,6 +214,8 @@ export function useAudit(tableRef: Ref, activeTab: Ref<string>) {
     selectedIds.value = [];
     selectedNum.value = 0;
     onSearch();
+    // 重新启动定时刷新，确保新标签页的数据也能自动刷新
+    startAutoRefresh();
   });
 
   function switchTab(tab: string) {
@@ -476,9 +478,59 @@ export function useAudit(tableRef: Ref, activeTab: Ref<string>) {
     onSearch();
   };
 
+  // 定时刷新间隔（30秒）
+  const REFRESH_INTERVAL = 30000;
+  // 定时器引用
+  let refreshTimer: number | null = null;
+
+  // 启动定时刷新（用于检测新上传的待审核内容）
+  const startAutoRefresh = () => {
+    // 清除已存在的定时器
+    if (refreshTimer) {
+      clearInterval(refreshTimer);
+    }
+    // 每30秒自动刷新一次，以检测新上传的待审核内容
+    refreshTimer = window.setInterval(() => {
+      // 只在页面可见时刷新
+      if (document.visibilityState === 'visible') {
+        onSearch();
+      }
+    }, REFRESH_INTERVAL);
+  };
+
+  // 停止定时刷新
+  const stopAutoRefresh = () => {
+    if (refreshTimer) {
+      clearInterval(refreshTimer);
+    }
+    refreshTimer = null;
+  };
+
+  // 监听页面可见性变化
+  const handleVisibilityChange = () => {
+    if (document.visibilityState === 'visible') {
+      // 页面变为可见时，立即刷新一次，然后启动定时刷新
+      onSearch();
+      startAutoRefresh();
+    } else {
+      // 页面不可见时，停止定时刷新以节省资源
+      stopAutoRefresh();
+    }
+  };
+
   onMounted(() => {
     columns.value = getColumns(activeTab.value);
     onSearch();
+    // 启动定时刷新
+    startAutoRefresh();
+    // 监听页面可见性变化
+    document.addEventListener('visibilitychange', handleVisibilityChange);
+  });
+
+  // 组件卸载时清理
+  onBeforeUnmount(() => {
+    stopAutoRefresh();
+    document.removeEventListener('visibilitychange', handleVisibilityChange);
   });
 
   return {

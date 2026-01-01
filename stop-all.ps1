@@ -3,7 +3,7 @@
 # ============================================
 
 Write-Host "========================================" -ForegroundColor Cyan
-Write-Host "    Vibe Music Player Stop Script" -ForegroundColor Cyan
+Write-Host "    Melody Hub Player Stop Script" -ForegroundColor Cyan
 Write-Host "========================================" -ForegroundColor Cyan
 Write-Host ""
 

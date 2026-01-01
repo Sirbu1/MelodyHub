@@ -61,7 +61,7 @@ public class UserFavoriteServiceImpl extends ServiceImpl<UserFavoriteMapper, Use
      * @return 用户收藏的歌曲列表
      */
     @Override
-    @Cacheable(key = "#songDTO.pageNum + '-' + #songDTO.pageSize + '-' + #songDTO.songName + '-' + #songDTO.artistName + '-' + #songDTO.album")
+    @Cacheable(key = "#songDTO.pageNum + '-' + #songDTO.pageSize + '-' + #songDTO.songName + '-' + #songDTO.artistName")
     public Result<PageResult<SongVO>> getUserFavoriteSongs(SongDTO songDTO) {
         Map<String, Object> map = ThreadLocalUtil.get();
         Object userIdObj = map.get(JwtClaimsConstant.USER_ID);
@@ -79,8 +79,7 @@ public class UserFavoriteServiceImpl extends ServiceImpl<UserFavoriteMapper, Use
                 page,
                 favoriteSongIds,
                 songDTO.getSongName(),
-                songDTO.getArtistName(),
-                songDTO.getAlbum()
+                songDTO.getArtistName()
         );
 
         // 遍历结果，设置 likeStatus，并去重（使用 LinkedHashMap 保持顺序）

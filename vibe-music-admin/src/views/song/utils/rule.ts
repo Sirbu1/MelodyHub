@@ -15,18 +15,6 @@ export const formRules = reactive(<FormRules>{
       trigger: "blur"
     }
   ],
-  album: [
-    {
-      validator: (rule, value, callback) => {
-        if (value === "") {
-          callback(new Error("专辑为必填项"));
-        } else {
-          callback();
-        }
-      },
-      trigger: "blur"
-    }
-  ],
   releaseTime: [
     {
       validator: (rule, value, callback) => {

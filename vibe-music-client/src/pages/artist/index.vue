@@ -56,7 +56,7 @@ const handleGetArtistList = () => {
   const params = {
     pageNum: currentPage.value,
     pageSize: pageSize.value,
-    name: null,
+    artistName: null,
     gender: selectedGender.value === '-1' ? null : categories.value[0].subCategories.find(item => item.id === selectedGender.value)?.value,
     // area: selectedArea.value === '-1' ? null : categories.value[1].subCategories.find(item => item.id === selectedArea.value)?.value
     area: null

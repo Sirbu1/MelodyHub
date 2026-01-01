@@ -38,8 +38,7 @@ watch(() => currentTrack.value.id, async (newId) => {
         if (
           'songId' in songData &&
           'songName' in songData &&
-          'artistName' in songData &&
-          'album' in songData
+          'artistName' in songData
         ) {
           songDetail.value = songData
         } else {

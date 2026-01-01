@@ -40,8 +40,7 @@ const getSongs = () => {
         pageNum: currentPage.value,
         pageSize: pageSize.value,
         songName: route.query.query as string || '',
-        artistName: '',
-        album: '',
+        artistName: ''
     }).then((res) => {
         if (res.code === 0 && res.data) {
             libraryStore.setTableData(res.data)

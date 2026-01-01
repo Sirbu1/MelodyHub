@@ -129,6 +129,13 @@ export const deleteOriginalSong = (songId: number) => {
   return http<Result>('delete', `/song/deleteOriginalSong/${songId}`)
 }
 
+/** 更新原创歌曲并重新提交审核 */
+export const updateOriginalSong = (songId: number, formData: FormData) => {
+  return http<Result>('post', `/song/updateOriginalSong/${songId}`, {
+    data: formData,
+  })
+}
+
 /** 获取所有歌手 */
 export const getAllArtists = (data: object) => {
   return http<ResultTable>('post', '/artist/getAllArtists', { data })
@@ -257,6 +264,11 @@ export const updateForumPostAcceptStatus = (id: number, isAccepted: number) => {
   return http<Result>('patch', `/forum/post/acceptStatus/${id}`, { params: { isAccepted } })
 }
 
+/** 更新帖子并重新提交审核 */
+export const updateForumPost = (postId: number, formData: FormData) => {
+  return http<Result>('post', `/forum/post/${postId}/update`, { data: formData })
+}
+
 /** 获取帖子回复列表 */
 export const getForumReplies = (data: object) => {
   return http<ResultTable>('post', '/forum/replies', { data })
@@ -270,6 +282,11 @@ export const addForumReply = (data: { postId: number; content: string; parentId?
 /** 删除回复 */
 export const deleteForumReply = (id: number) => {
   return http<Result>('delete', `/forum/reply/${id}`)
+}
+
+/** 更新回复并重新提交审核 */
+export const updateForumReply = (replyId: number, data: { content: string }) => {
+  return http<Result>('put', `/forum/reply/${replyId}`, { data })
 }
 
 /** 点赞回复 */

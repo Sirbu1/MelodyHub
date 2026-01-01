@@ -68,7 +68,7 @@ const getPlaylists = async () => {
         name: item.title,
         coverImgUrl: item.coverUrl ?? coverImg,
         creator: {
-          nickname: selected.value === 'favorite' ? 'Vibe Music' : 'Vibe Music',
+          nickname: selected.value === 'favorite' ? 'Melody Hub' : 'Melody Hub',
           avatarUrl: coverImg
         },
         playCount: 0,

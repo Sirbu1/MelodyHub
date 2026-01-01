@@ -41,10 +41,6 @@ const formatDate = (date: string) => {
         <h3 class="text-xl font-semibold text-primary-foreground">歌曲信息</h3>
         <div class="grid grid-cols-2 gap-4 text-sm text-muted-foreground">
           <div>
-            <span class="text-primary-foreground">专辑：</span>
-            {{ songDetail.album }}
-          </div>
-          <div>
             <span class="text-primary-foreground">发行时间：</span>
             {{ formatDate(songDetail.releaseTime) }}
           </div>

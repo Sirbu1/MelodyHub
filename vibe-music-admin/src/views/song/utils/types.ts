@@ -5,7 +5,6 @@ interface FormItemProps {
   artistName: string;
   songId: number;
   songName: string;
-  album: string;
   style: Array<string>;
   releaseTime: Date;
 }

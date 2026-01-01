@@ -2,6 +2,7 @@ package cn.edu.seig.vibemusic.service.impl;
 
 import cn.edu.seig.vibemusic.constant.MessageConstant;
 import cn.edu.seig.vibemusic.mapper.*;
+import cn.edu.seig.vibemusic.model.entity.Artist;
 import cn.edu.seig.vibemusic.model.entity.Comment;
 import cn.edu.seig.vibemusic.model.entity.ForumPost;
 import cn.edu.seig.vibemusic.model.entity.ForumReply;
@@ -19,10 +20,13 @@ import com.baomidou.mybatisplus.core.metadata.IPage;
 import com.baomidou.mybatisplus.extension.plugins.pagination.Page;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.cache.annotation.CacheEvict;
+import org.springframework.data.redis.core.RedisTemplate;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.util.List;
+import java.util.Set;
 
 /**
  * 审核服务实现类
@@ -46,8 +50,15 @@ public class AuditServiceImpl implements IAuditService {
     @Autowired
     private UserMapper userMapper;
 
+    @Autowired
+    private ArtistMapper artistMapper;
+
+    @Autowired
+    private RedisTemplate redisTemplate;
+
     @Override
     @Transactional
+    @CacheEvict(cacheNames = {"songCache", "artistCache"}, allEntries = true)
     public Result approveSong(Long songId) {
         Song song = songMapper.selectById(songId);
         if (song == null) {
@@ -57,11 +68,108 @@ public class AuditServiceImpl implements IAuditService {
         if (songMapper.updateById(song) == 0) {
             return Result.error("审核失败");
         }
+
+        // 如果是原创歌曲，确保创建或更新歌手记录
+        if (song.getIsOriginal() != null && song.getIsOriginal() && song.getCreatorId() != null) {
+            try {
+                log.info("审核通过：开始处理原创歌手记录，songId: {}, creatorId: {}", songId, song.getCreatorId());
+                // 获取创建者信息
+                User user = userMapper.selectById(song.getCreatorId());
+                if (user == null) {
+                    log.warn("审核通过：未找到创建者信息，creatorId: {}", song.getCreatorId());
+                } else {
+                    log.info("审核通过：找到创建者信息，userId: {}, username: {}, birth: {}, area: {}, introduction: {}", 
+                            user.getUserId(), user.getUsername(), user.getBirth(), user.getArea(), 
+                            user.getIntroduction() != null ? (user.getIntroduction().length() > 20 ? 
+                            user.getIntroduction().substring(0, 20) + "..." : user.getIntroduction()) : "null");
+                    
+                    // 查询是否已存在同名歌手（原创歌手）
+                    QueryWrapper<Artist> artistQueryWrapper = new QueryWrapper<>();
+                    artistQueryWrapper.eq("name", user.getUsername())
+                                      .eq("gender", 3); // 原创歌手类型为3
+                    Artist existingArtist = artistMapper.selectOne(artistQueryWrapper);
+                    log.info("审核通过：查询已存在歌手，username: {}, 结果: {}", 
+                            user.getUsername(), existingArtist != null ? "存在" : "不存在");
+
+                    if (existingArtist != null) {
+                        // 更新现有歌手信息
+                        log.info("审核通过：更新现有原创歌手信息，userId: {}, artistId: {}", 
+                                user.getUserId(), existingArtist.getArtistId());
+                        existingArtist.setGender(3); // 确保类型为原创歌手
+                        existingArtist.setBirth(user.getBirth());
+                        existingArtist.setArea(user.getArea());
+                        existingArtist.setIntroduction(user.getIntroduction());
+                        // 如果用户有头像，也更新歌手头像
+                        if (user.getUserAvatar() != null) {
+                            existingArtist.setAvatar(user.getUserAvatar());
+                        }
+                        int updateResult = artistMapper.updateById(existingArtist);
+                        if (updateResult > 0) {
+                            log.info("审核通过：成功更新原创歌手信息，userId: {}, artistId: {}", 
+                                    user.getUserId(), existingArtist.getArtistId());
+                        } else {
+                            log.error("审核通过：更新原创歌手信息失败，userId: {}, artistId: {}", 
+                                    user.getUserId(), existingArtist.getArtistId());
+                        }
+                    } else {
+                        // 创建新歌手记录（默认类型为原创歌手）
+                        log.info("审核通过：创建新原创歌手记录，userId: {}, username: {}", 
+                                user.getUserId(), user.getUsername());
+                        Artist artist = new Artist();
+                        artist.setArtistName(user.getUsername());
+                        artist.setGender(3); // 原创歌手类型为3
+                        artist.setBirth(user.getBirth());
+                        artist.setArea(user.getArea());
+                        artist.setIntroduction(user.getIntroduction());
+                        // 如果用户有头像，也设置歌手头像
+                        if (user.getUserAvatar() != null) {
+                            artist.setAvatar(user.getUserAvatar());
+                        }
+                        
+                        log.info("审核通过：准备插入歌手记录，artistName: {}, gender: {}, birth: {}, area: {}, introduction: {}", 
+                                artist.getArtistName(), artist.getGender(), artist.getBirth(), 
+                                artist.getArea(), artist.getIntroduction() != null ? 
+                                (artist.getIntroduction().length() > 20 ? 
+                                artist.getIntroduction().substring(0, 20) + "..." : artist.getIntroduction()) : "null");
+                        
+                        int insertResult = artistMapper.insert(artist);
+                        if (insertResult > 0) {
+                            log.info("审核通过：成功创建原创歌手记录，userId: {}, username: {}, artistId: {}", 
+                                    user.getUserId(), user.getUsername(), artist.getArtistId());
+                        } else {
+                            log.error("审核通过：创建原创歌手记录失败，userId: {}, username: {}, insertResult: {}", 
+                                    user.getUserId(), user.getUsername(), insertResult);
+                        }
+                    }
+                    // 清除歌手缓存，确保新创建的歌手能立即显示
+                    try {
+                        Set<String> keys = redisTemplate.keys("artistCache::*");
+                        if (keys != null && !keys.isEmpty()) {
+                            redisTemplate.delete(keys);
+                            log.info("审核通过：已清除歌手缓存，清除数量: {}", keys.size());
+                        } else {
+                            log.info("审核通过：没有找到需要清除的歌手缓存");
+                        }
+                    } catch (Exception cacheException) {
+                        log.error("审核通过：清除歌手缓存失败", cacheException);
+                    }
+                }
+            } catch (Exception e) {
+                // 记录错误但不影响审核通过
+                log.error("审核通过：创建或更新歌手记录失败，songId: {}, creatorId: {}, 错误信息: {}", 
+                        songId, song.getCreatorId(), e.getMessage(), e);
+            }
+        } else {
+            log.info("审核通过：不是原创歌曲或没有创建者，songId: {}, isOriginal: {}, creatorId: {}", 
+                    songId, song.getIsOriginal(), song.getCreatorId());
+        }
+
         return Result.success("审核通过");
     }
 
     @Override
     @Transactional
+    @CacheEvict(cacheNames = "songCache", allEntries = true)
     public Result rejectSong(Long songId) {
         Song song = songMapper.selectById(songId);
         if (song == null) {
@@ -176,7 +284,6 @@ public class AuditServiceImpl implements IAuditService {
                 SongVO vo = new SongVO();
                 vo.setSongId(song.getSongId());
                 vo.setSongName(song.getSongName());
-                vo.setAlbum(song.getAlbum());
                 vo.setStyle(song.getStyle());
                 vo.setDuration(song.getDuration());
                 vo.setCoverUrl(song.getCoverUrl());

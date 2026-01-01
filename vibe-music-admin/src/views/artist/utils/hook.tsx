@@ -94,7 +94,9 @@ export function useArtist(tableRef: Ref) {
               ? "女歌手"
               : row.gender === 2
                 ? "组合/乐队"
-                : "未知"}
+                : row.gender === 3
+                  ? "原创歌手"
+                  : "未知"}
         </el-tag>
       )
     },

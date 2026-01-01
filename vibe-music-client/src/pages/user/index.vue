@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { ref, reactive, onMounted } from 'vue'
+import { ref, reactive, onMounted, watch } from 'vue'
 import type { FormInstance, FormRules } from 'element-plus'
 import { ElMessage, ElMessageBox } from 'element-plus'
 import { UserStore } from '@/stores/modules/user'
@@ -26,7 +26,38 @@ const userForm = reactive({
   username: userStore.userInfo.username || '',
   phone: userStore.userInfo.phone || '',
   email: userStore.userInfo.email || '',
-  introduction: userStore.userInfo.introduction || ''
+  introduction: userStore.userInfo.introduction || '',
+  gender: userStore.userInfo.gender || null,
+  birth: userStore.userInfo.birth || '',
+  area: userStore.userInfo.area || ''
+})
+
+// 监听登录状态变化，如果退出登录则清空表单
+watch(() => userStore.isLoggedIn, (isLoggedIn) => {
+  if (!isLoggedIn) {
+    // 清空表单数据
+    userForm.userId = undefined
+    userForm.username = ''
+    userForm.phone = ''
+    userForm.email = ''
+    userForm.introduction = ''
+    userForm.gender = null
+    userForm.birth = ''
+    userForm.area = ''
+    // 关闭裁剪弹窗
+    cropperVisible.value = false
+    cropperImg.value = ''
+  } else {
+    // 如果重新登录，更新表单数据
+    userForm.userId = userStore.userInfo.userId
+    userForm.username = userStore.userInfo.username || ''
+    userForm.phone = userStore.userInfo.phone || ''
+    userForm.email = userStore.userInfo.email || ''
+    userForm.introduction = userStore.userInfo.introduction || ''
+    userForm.gender = userStore.userInfo.gender || null
+    userForm.birth = userStore.userInfo.birth || ''
+    userForm.area = userStore.userInfo.area || ''
+  }
 })
 
 // 表单验证规则
@@ -278,7 +309,28 @@ const handleDelete = async () => {
       </div>
 
       <div class="section">
-        <div class="section-title">简介</div>
+        <div class="section-title">生日 <span class="text-red-500">*</span></div>
+        <el-form-item prop="birth">
+          <el-date-picker
+            v-model="userForm.birth"
+            type="date"
+            placeholder="请选择生日"
+            format="YYYY-MM-DD"
+            value-format="YYYY-MM-DD"
+            class="w-full"
+          />
+        </el-form-item>
+      </div>
+
+      <div class="section">
+        <div class="section-title">国籍 <span class="text-red-500">*</span></div>
+        <el-form-item prop="area">
+          <el-input v-model="userForm.area" placeholder="请输入国籍" />
+        </el-form-item>
+      </div>
+
+      <div class="section">
+        <div class="section-title">简介 <span class="text-red-500">*</span></div>
         <el-form-item prop="introduction">
           <el-input v-model="userForm.introduction" type="textarea" :rows="4" placeholder="编辑个人简介" maxlength="100"
             show-word-limit />

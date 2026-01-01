@@ -50,4 +50,9 @@ public class SongUploadDTO implements Serializable {
      */
     private String duration;
 
+    /**
+     * 歌曲ID（更新时使用）
+     */
+    private Long songId;
+
 }

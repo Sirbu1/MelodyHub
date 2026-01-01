@@ -50,12 +50,6 @@ public class Song implements Serializable {
     private String songName;
 
     /**
-     * 专辑
-     */
-    @TableField("album")
-    private String album;
-
-    /**
      * 歌词
      */
     @TableField("lyric")

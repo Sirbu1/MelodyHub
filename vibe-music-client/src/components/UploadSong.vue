@@ -1,121 +1,245 @@
 <template>
-  <div class="upload-song-container">
-    <h2>上传原创歌曲</h2>
-
-    <div class="upload-form">
-      <form @submit.prevent="handleSubmit">
-        <!-- 歌曲标题 -->
-        <div class="form-group">
-          <label for="songName">歌曲标题 *</label>
-          <input
-            id="songName"
-            v-model="form.songName"
-            type="text"
-            required
-            placeholder="请输入歌曲标题"
-          />
-        </div>
-
-        <!-- 歌曲风格 -->
-        <div class="form-group">
-          <label for="style">歌曲风格 *</label>
-          <select id="style" v-model="form.style" required>
-            <option value="">请选择风格</option>
-            <option value="流行">流行</option>
-            <option value="摇滚">摇滚</option>
-            <option value="电子">电子</option>
-            <option value="古典">古典</option>
-            <option value="爵士">爵士</option>
-            <option value="民谣">民谣</option>
-            <option value="嘻哈">嘻哈</option>
-            <option value="其他">其他</option>
-          </select>
-        </div>
-
-        <!-- 封面文件 -->
-        <div class="form-group">
-          <label for="coverFile">歌曲封面</label>
-          <input
-            id="coverFile"
-            ref="coverInput"
-            type="file"
-            accept="image/*"
-            @change="handleCoverChange"
-          />
-          <div v-if="coverPreview" class="image-preview">
-            <img :src="coverPreview" alt="封面预览" />
-          </div>
-        </div>
-
-        <!-- 音频文件 -->
-        <div class="form-group">
-          <label for="audioFile">音频文件 *</label>
-          <input
-            id="audioFile"
-            ref="audioInput"
-            type="file"
-            accept=".mp3,.wav"
-            required
-            @change="handleAudioChange"
-          />
-          <small class="file-hint">支持MP3、WAV格式，文件大小不超过100MB</small>
-        </div>
-
-        <!-- 打赏设置 -->
-        <div class="form-group">
-          <label class="checkbox-label">
-            <input
-              v-model="form.isRewardEnabled"
-              type="checkbox"
-              @change="handleRewardToggle"
-            />
-            开启打赏功能
-          </label>
-        </div>
-
-        <!-- 收款码文件 -->
-        <div v-if="form.isRewardEnabled" class="form-group">
-          <label for="rewardQrFile">收款码图片 *</label>
-          <input
-            id="rewardQrFile"
-            ref="qrInput"
-            type="file"
-            accept="image/*"
-            required
-            @change="handleQrChange"
-          />
-          <div v-if="qrPreview" class="image-preview">
-            <img :src="qrPreview" alt="收款码预览" />
-          </div>
-        </div>
-
-        <!-- 上传按钮 -->
-        <div class="form-actions">
-          <button type="submit" :disabled="isUploading" class="upload-btn">
-            {{ isUploading ? '上传中...' : '上传歌曲' }}
-          </button>
-        </div>
-      </form>
-
-      <!-- 上传进度 -->
-      <div v-if="uploadProgress > 0" class="upload-progress">
-        <div class="progress-bar">
-          <div
-            class="progress-fill"
-            :style="{ width: uploadProgress + '%' }"
-          ></div>
-        </div>
-        <span>{{ uploadProgress }}%</span>
-      </div>
+  <div class="flex flex-col h-full flex-1 overflow-hidden bg-background px-4 py-4">
+    <!-- 页面标题 -->
+    <div class="mb-6">
+      <h1 class="text-2xl font-semibold text-foreground mb-2 flex items-center gap-2">
+        <icon-mdi:music-note class="text-primary" />
+        上传原创歌曲
+      </h1>
+      <p class="text-sm text-muted-foreground">分享您的音乐作品，让更多人听到您的声音</p>
     </div>
 
-    <!-- 上传结果 -->
-    <div v-if="uploadResult" class="upload-result">
-      <div v-if="uploadResult.success" class="success-message">
-        ✅ {{ uploadResult.message }}
-      </div>
-      <div v-else class="error-message">
-        ❌ {{ uploadResult.message }}
+    <div class="flex-1 overflow-y-auto">
+      <div class="max-w-3xl mx-auto">
+        <div class="bg-card rounded-xl border border-border p-6 shadow-sm">
+      <form @submit.prevent="handleSubmit">
+          <!-- 歌曲标题 -->
+          <div class="mb-6">
+            <label for="songName" class="block text-sm font-medium text-foreground mb-2 flex items-center gap-2">
+              <icon-mdi:music class="text-primary" />
+              歌曲标题 <span class="text-red-500">*</span>
+            </label>
+            <input
+              id="songName"
+              v-model="form.songName"
+              type="text"
+              required
+              placeholder="请输入歌曲标题"
+              class="flex h-10 w-full rounded-lg border border-input bg-background px-3 py-2 text-sm ring-offset-background placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-0"
+            />
+          </div>
+
+          <!-- 歌曲风格 -->
+          <div class="mb-6">
+            <label for="style" class="block text-sm font-medium text-foreground mb-2 flex items-center gap-2">
+              <icon-mdi:playlist-music class="text-primary" />
+              歌曲风格 <span class="text-red-500">*</span>
+            </label>
+            <select 
+              id="style" 
+              v-model="form.style" 
+              required 
+              class="flex h-10 w-full rounded-lg border border-input bg-background px-3 py-2 text-sm ring-offset-background focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-0"
+            >
+              <option value="">请选择风格</option>
+              <option value="流行">流行</option>
+              <option value="摇滚">摇滚</option>
+              <option value="电子">电子</option>
+              <option value="古典">古典</option>
+              <option value="爵士">爵士</option>
+              <option value="民谣">民谣</option>
+              <option value="嘻哈">嘻哈</option>
+              <option value="其他">其他</option>
+            </select>
+          </div>
+
+          <!-- 封面文件 -->
+          <div class="mb-6">
+            <label class="block text-sm font-medium text-foreground mb-2 flex items-center gap-2">
+              <icon-mdi:image class="text-primary" />
+              歌曲封面
+            </label>
+            <div 
+              class="relative border-2 border-dashed border-border rounded-xl p-8 text-center cursor-pointer transition-all hover:border-primary/50 hover:bg-accent/50"
+              @click="coverInput?.click()"
+            >
+              <input
+                id="coverFile"
+                ref="coverInput"
+                type="file"
+                accept="image/*"
+                @change="handleCoverChange"
+                class="hidden"
+              />
+              <div v-if="!coverPreview" class="flex flex-col items-center gap-3">
+                <icon-mdi:cloud-upload class="text-4xl text-muted-foreground" />
+                <p class="text-sm font-medium text-foreground">点击选择封面图片</p>
+                <p class="text-xs text-muted-foreground">支持 JPG、PNG 格式，最大 10MB</p>
+              </div>
+              <div v-else class="relative inline-block">
+                <img :src="coverPreview" alt="封面预览" class="max-w-[200px] max-h-[200px] rounded-lg object-cover shadow-md" />
+                <button 
+                  type="button" 
+                  @click.stop="removeCover" 
+                  class="absolute -top-2 -right-2 bg-red-500 text-white rounded-full w-7 h-7 flex items-center justify-center hover:bg-red-600 transition-colors shadow-md"
+                >
+                  <icon-mdi:close-circle class="text-lg" />
+                </button>
+              </div>
+            </div>
+          </div>
+
+          <!-- 音频文件 -->
+          <div class="mb-6">
+            <label class="block text-sm font-medium text-foreground mb-2 flex items-center gap-2">
+              <icon-mdi:file-music class="text-primary" />
+              音频文件 <span class="text-red-500">*</span>
+            </label>
+            <div 
+              class="relative border-2 border-dashed border-border rounded-xl p-8 text-center cursor-pointer transition-all hover:border-primary/50 hover:bg-accent/50"
+              @click="audioInput?.click()"
+            >
+              <input
+                id="audioFile"
+                ref="audioInput"
+                type="file"
+                accept=".mp3,.wav"
+                required
+                @change="handleAudioChange"
+                class="hidden"
+              />
+              <div v-if="!audioInput?.files?.length" class="flex flex-col items-center gap-3">
+                <icon-mdi:cloud-upload class="text-4xl text-muted-foreground" />
+                <p class="text-sm font-medium text-foreground">点击选择音频文件</p>
+                <p class="text-xs text-muted-foreground">支持 MP3、WAV 格式，最大 100MB</p>
+              </div>
+              <div v-else class="flex items-center justify-between w-full p-4 bg-accent rounded-lg border border-border">
+                <div class="flex items-center gap-4 flex-1 min-w-0">
+                  <icon-mdi:file-music class="text-3xl text-primary flex-shrink-0" />
+                  <div class="flex-1 min-w-0">
+                    <p class="text-sm font-medium text-foreground truncate">{{ audioInput.files[0].name }}</p>
+                    <p class="text-xs text-muted-foreground">{{ formatFileSize(audioInput.files[0].size) }}</p>
+                    <p v-if="audioDuration > 0" class="text-xs text-muted-foreground">
+                      时长: {{ formatDuration(audioDuration) }}
+                    </p>
+                  </div>
+                </div>
+                <button 
+                  type="button" 
+                  @click.stop="removeAudio" 
+                  class="ml-4 bg-red-500 text-white rounded-full w-7 h-7 flex items-center justify-center hover:bg-red-600 transition-colors flex-shrink-0"
+                >
+                  <icon-mdi:close-circle class="text-lg" />
+                </button>
+              </div>
+            </div>
+          </div>
+
+          <!-- 打赏设置 -->
+          <div class="mb-6">
+            <label class="flex items-center gap-3 p-4 bg-accent rounded-lg cursor-pointer hover:bg-accent/80 transition-colors">
+              <input
+                v-model="form.isRewardEnabled"
+                type="checkbox"
+                @change="handleRewardToggle"
+                class="w-4 h-4 rounded border-input text-primary focus:ring-2 focus:ring-ring focus:ring-offset-0"
+              />
+              <span class="flex items-center gap-2 text-sm font-medium text-foreground">
+                <icon-mdi:gift class="text-primary" />
+                开启打赏功能
+              </span>
+            </label>
+          </div>
+
+          <!-- 收款码文件 -->
+          <div v-if="form.isRewardEnabled" class="mb-6 p-4 bg-primary/5 rounded-xl border border-primary/20">
+            <label class="block text-sm font-medium text-foreground mb-2 flex items-center gap-2">
+              <icon-mdi:qrcode class="text-primary" />
+              收款码图片 <span class="text-red-500">*</span>
+            </label>
+            <div 
+              class="relative border-2 border-dashed border-border rounded-xl p-6 text-center cursor-pointer transition-all hover:border-primary/50 hover:bg-accent/50"
+              @click="qrInput?.click()"
+            >
+              <input
+                id="rewardQrFile"
+                ref="qrInput"
+                type="file"
+                accept="image/*"
+                required
+                @change="handleQrChange"
+                class="hidden"
+              />
+              <div v-if="!qrPreview" class="flex flex-col items-center gap-3">
+                <icon-mdi:cloud-upload class="text-4xl text-muted-foreground" />
+                <p class="text-sm font-medium text-foreground">点击选择收款码图片</p>
+                <p class="text-xs text-muted-foreground">支持 JPG、PNG 格式，最大 5MB</p>
+              </div>
+              <div v-else class="relative inline-block">
+                <img :src="qrPreview" alt="收款码预览" class="max-w-[150px] max-h-[150px] rounded-lg object-cover shadow-md" />
+                <button 
+                  type="button" 
+                  @click.stop="removeQr" 
+                  class="absolute -top-2 -right-2 bg-red-500 text-white rounded-full w-7 h-7 flex items-center justify-center hover:bg-red-600 transition-colors shadow-md"
+                >
+                  <icon-mdi:close-circle class="text-lg" />
+                </button>
+              </div>
+            </div>
+          </div>
+
+          <!-- 上传按钮 -->
+          <div class="mt-8">
+            <button 
+              type="submit" 
+              :disabled="isUploading" 
+              class="inline-flex items-center justify-center gap-2 whitespace-nowrap rounded-lg text-sm font-medium transition-colors bg-primary text-primary-foreground hover:bg-primary/90 h-11 px-8 w-full disabled:opacity-50 disabled:cursor-not-allowed shadow-md hover:shadow-lg"
+            >
+              <icon-mdi:upload v-if="!isUploading" class="text-lg" />
+              <icon-mdi:loading v-else class="text-lg animate-spin" />
+              {{ isUploading ? '上传中...' : '上传歌曲' }}
+            </button>
+          </div>
+        </form>
+
+        <!-- 上传进度 -->
+        <div v-if="uploadProgress > 0" class="mt-6 p-4 bg-accent rounded-lg">
+          <div class="flex justify-between items-center mb-3">
+            <span class="text-sm font-medium text-foreground">上传进度</span>
+            <span class="text-sm font-semibold text-primary">{{ uploadProgress }}%</span>
+          </div>
+          <div class="w-full h-2 bg-muted rounded-full overflow-hidden">
+            <div
+              class="h-full bg-primary transition-all duration-300 rounded-full"
+              :style="{ width: uploadProgress + '%' }"
+            ></div>
+          </div>
+        </div>
+
+        <!-- 上传结果 -->
+        <div v-if="uploadResult" class="mt-6">
+          <div 
+            v-if="uploadResult.success" 
+            class="flex items-start gap-3 p-4 bg-green-500/10 border border-green-500/20 rounded-lg text-green-600 dark:text-green-400"
+          >
+            <icon-mdi:check-circle class="text-xl flex-shrink-0 mt-0.5" />
+            <div class="flex-1">
+              <p class="font-semibold mb-1">上传成功！</p>
+              <p class="text-sm">{{ uploadResult.message }}</p>
+            </div>
+          </div>
+          <div 
+            v-else 
+            class="flex items-start gap-3 p-4 bg-red-500/10 border border-red-500/20 rounded-lg text-red-600 dark:text-red-400"
+          >
+            <icon-mdi:alert-circle class="text-xl flex-shrink-0 mt-0.5" />
+            <div class="flex-1">
+              <p class="font-semibold mb-1">上传失败</p>
+              <p class="text-sm">{{ uploadResult.message }}</p>
+            </div>
+          </div>
+        </div>
+        </div>
       </div>
     </div>
   </div>
@@ -237,6 +361,46 @@ const handleRewardToggle = () => {
     }
     qrPreview.value = ''
   }
+}
+
+// 移除封面
+const removeCover = () => {
+  if (coverInput.value) {
+    coverInput.value.value = ''
+  }
+  coverPreview.value = ''
+}
+
+// 移除音频
+const removeAudio = () => {
+  if (audioInput.value) {
+    audioInput.value.value = ''
+  }
+  audioDuration.value = 0
+}
+
+// 移除收款码
+const removeQr = () => {
+  if (qrInput.value) {
+    qrInput.value.value = ''
+  }
+  qrPreview.value = ''
+}
+
+// 格式化文件大小
+const formatFileSize = (bytes) => {
+  if (bytes === 0) return '0 Bytes'
+  const k = 1024
+  const sizes = ['Bytes', 'KB', 'MB', 'GB']
+  const i = Math.floor(Math.log(bytes) / Math.log(k))
+  return Math.round(bytes / Math.pow(k, i) * 100) / 100 + ' ' + sizes[i]
+}
+
+// 格式化时长
+const formatDuration = (seconds) => {
+  const mins = Math.floor(seconds / 60)
+  const secs = Math.floor(seconds % 60)
+  return `${mins}:${secs.toString().padStart(2, '0')}`
 }
 
 // 处理收款码文件选择
@@ -401,135 +565,5 @@ const resetForm = () => {
 </script>
 
 <style scoped>
-.upload-song-container {
-  max-width: 600px;
-  margin: 0 auto;
-  padding: 20px;
-  min-height: 100%;
-  box-sizing: border-box;
-}
-
-.upload-form {
-  background: #f9f9f9;
-  padding: 20px;
-  border-radius: 8px;
-  margin-top: 20px;
-}
-
-.form-group {
-  margin-bottom: 20px;
-}
-
-.form-group label {
-  display: block;
-  margin-bottom: 5px;
-  font-weight: bold;
-}
-
-.form-group input[type="text"],
-.form-group select {
-  width: 100%;
-  padding: 10px;
-  border: 1px solid #ddd;
-  border-radius: 4px;
-  font-size: 14px;
-}
-
-.form-group input[type="file"] {
-  width: 100%;
-  padding: 8px;
-  border: 1px solid #ddd;
-  border-radius: 4px;
-}
-
-.checkbox-label {
-  display: flex;
-  align-items: center;
-  cursor: pointer;
-  font-weight: normal;
-}
-
-.checkbox-label input {
-  margin-right: 8px;
-}
-
-.file-hint {
-  display: block;
-  margin-top: 5px;
-  color: #666;
-  font-size: 12px;
-}
-
-.image-preview {
-  margin-top: 10px;
-}
-
-.image-preview img {
-  max-width: 200px;
-  max-height: 200px;
-  border-radius: 4px;
-  box-shadow: 0 2px 4px rgba(0,0,0,0.1);
-}
-
-.form-actions {
-  margin-top: 30px;
-}
-
-.upload-btn {
-  background: #007bff;
-  color: white;
-  padding: 12px 24px;
-  border: none;
-  border-radius: 4px;
-  cursor: pointer;
-  font-size: 16px;
-  width: 100%;
-}
-
-.upload-btn:hover:not(:disabled) {
-  background: #0056b3;
-}
-
-.upload-btn:disabled {
-  background: #ccc;
-  cursor: not-allowed;
-}
-
-.upload-progress {
-  margin-top: 20px;
-  text-align: center;
-}
-
-.progress-bar {
-  width: 100%;
-  height: 20px;
-  background: #e9ecef;
-  border-radius: 10px;
-  overflow: hidden;
-  margin-bottom: 10px;
-}
-
-.progress-fill {
-  height: 100%;
-  background: #007bff;
-  transition: width 0.3s ease;
-}
-
-.upload-result {
-  margin-top: 20px;
-  padding: 15px;
-  border-radius: 4px;
-}
-
-.success-message {
-  background: #d4edda;
-  color: #155724;
-  border: 1px solid #c3e6cb;
-}
-
-.error-message {
-  background: #f8d7da;
-  color: #721c24;
-  border: 1px solid #f5c6cb;
-}
+/* 使用 Tailwind CSS 类，这里只保留必要的自定义样式 */
 </style>

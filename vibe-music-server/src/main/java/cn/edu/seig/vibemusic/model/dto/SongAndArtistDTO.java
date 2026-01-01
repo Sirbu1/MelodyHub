@@ -34,9 +34,4 @@ public class SongAndArtistDTO implements Serializable {
      */
     private String songName;
 
-    /**
-     * 专辑
-     */
-    private String album;
-
 }

@@ -4,11 +4,7 @@
   "private": true,
   "version": "1.0.0",
   "type": "module",
-  "description": "Vibe Music",
-  "author": {
-    "name": "Alex LiSun",
-    "email": "vibe_music_service@163.com"
-  },
+  "description": "Melody Hub",
   "scripts": {
     "dev": "NODE_OPTIONS=--max-old-space-size=4096 vite",
     "serve": "pnpm dev",

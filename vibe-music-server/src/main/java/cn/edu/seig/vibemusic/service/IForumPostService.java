@@ -86,5 +86,14 @@ public interface IForumPostService extends IService<ForumPost> {
      */
     Result updateAcceptStatus(Long postId, Integer isAccepted);
 
+    /**
+     * 更新帖子并重新提交审核
+     *
+     * @param forumPostAddDTO 帖子信息（包含postId）
+     * @param referenceAttachmentFile 参考附件文件（可选）
+     * @return 结果
+     */
+    Result updatePost(ForumPostAddDTO forumPostAddDTO, MultipartFile referenceAttachmentFile);
+
 }
 
