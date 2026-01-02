@@ -5,8 +5,10 @@ import cn.edu.seig.vibemusic.constant.JwtClaimsConstant;
 import cn.edu.seig.vibemusic.constant.MessageConstant;
 import cn.edu.seig.vibemusic.enumeration.RoleEnum;
 import cn.edu.seig.vibemusic.enumeration.UserStatusEnum;
+import cn.edu.seig.vibemusic.mapper.ArtistMapper;
 import cn.edu.seig.vibemusic.mapper.UserMapper;
 import cn.edu.seig.vibemusic.model.dto.*;
+import cn.edu.seig.vibemusic.model.entity.Artist;
 import cn.edu.seig.vibemusic.model.entity.User;
 import cn.edu.seig.vibemusic.model.vo.UserManagementVO;
 import cn.edu.seig.vibemusic.model.vo.UserVO;
@@ -27,6 +29,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.cache.annotation.CacheConfig;
 import org.springframework.cache.annotation.CacheEvict;
 import org.springframework.cache.annotation.Cacheable;
+import org.springframework.data.redis.core.RedisTemplate;
 import org.springframework.data.redis.core.StringRedisTemplate;
 import org.springframework.stereotype.Service;
 import org.springframework.util.DigestUtils;
@@ -59,6 +62,10 @@ public class UserServiceImpl extends ServiceImpl<UserMapper, User> implements IU
     private EmailService emailService;
     @Autowired
     private MinioService minioService;
+    @Autowired
+    private ArtistMapper artistMapper;
+    @Autowired
+    private RedisTemplate<Object, Object> redisTemplate;
 
     /**
      * 发送验证码
@@ -219,7 +226,56 @@ public class UserServiceImpl extends ServiceImpl<UserMapper, User> implements IU
             return Result.error(MessageConstant.UPDATE + MessageConstant.FAILED);
         }
 
-        // 注意：歌手记录现在在上传歌曲时创建，这里不再创建
+        // 如果用户是原创歌手（gender=3），同步更新歌手表中的信息
+        if (user.getGender() != null && user.getGender() == 3) {
+            try {
+                // 查询是否存在对应的歌手记录（通过 username 和 gender=3）
+                QueryWrapper<Artist> artistQueryWrapper = new QueryWrapper<>();
+                artistQueryWrapper.eq("name", user.getUsername())
+                                  .eq("gender", 3); // 原创歌手类型为3
+                Artist existingArtist = artistMapper.selectOne(artistQueryWrapper);
+                
+                if (existingArtist != null) {
+                    // 更新现有歌手信息
+                    log.info("同步更新原创歌手信息，userId: {}, artistId: {}, username: {}", 
+                            userId, existingArtist.getArtistId(), user.getUsername());
+                    existingArtist.setArtistName(user.getUsername()); // 更新歌手名称
+                    existingArtist.setGender(3); // 确保类型为原创歌手
+                    existingArtist.setBirth(user.getBirth());
+                    existingArtist.setArea(user.getArea());
+                    existingArtist.setIntroduction(user.getIntroduction());
+                    // 如果用户有头像，也更新歌手头像
+                    if (user.getUserAvatar() != null) {
+                        existingArtist.setAvatar(user.getUserAvatar());
+                    }
+                    int updateResult = artistMapper.updateById(existingArtist);
+                    if (updateResult > 0) {
+                        log.info("成功同步更新原创歌手信息，userId: {}, artistId: {}", 
+                                userId, existingArtist.getArtistId());
+                    } else {
+                        log.warn("同步更新原创歌手信息失败，userId: {}, artistId: {}", 
+                                userId, existingArtist.getArtistId());
+                    }
+                } else {
+                    log.info("用户是原创歌手但未找到对应的歌手记录，userId: {}, username: {}", 
+                            userId, user.getUsername());
+                }
+                
+                // 清除歌手缓存，确保更新后的信息能立即显示
+                try {
+                    java.util.Set<Object> keys = redisTemplate.keys("artistCache::*");
+                    if (keys != null && !keys.isEmpty()) {
+                        redisTemplate.delete(keys);
+                        log.info("已清除歌手缓存，清除数量: {}", keys.size());
+                    }
+                } catch (Exception cacheException) {
+                    log.warn("清除歌手缓存失败", cacheException);
+                }
+            } catch (Exception e) {
+                log.error("同步更新歌手信息失败，userId: {}", userId, e);
+                // 不抛出异常，因为用户信息更新已经成功
+            }
+        }
 
         return Result.success(MessageConstant.UPDATE + MessageConstant.SUCCESS);
     }
@@ -247,6 +303,50 @@ public class UserServiceImpl extends ServiceImpl<UserMapper, User> implements IU
                 new QueryWrapper<User>().eq("id", userId)) == 0) {
             return Result.error(MessageConstant.UPDATE + MessageConstant.FAILED);
         }
+        
+        // 如果用户是原创歌手（gender=3），同步更新歌手头像
+        if (user.getGender() != null && user.getGender() == 3) {
+            try {
+                // 查询是否存在对应的歌手记录（通过 username 和 gender=3）
+                QueryWrapper<Artist> artistQueryWrapper = new QueryWrapper<>();
+                artistQueryWrapper.eq("name", user.getUsername())
+                                  .eq("gender", 3); // 原创歌手类型为3
+                Artist existingArtist = artistMapper.selectOne(artistQueryWrapper);
+                
+                if (existingArtist != null) {
+                    // 更新歌手头像
+                    log.info("同步更新原创歌手头像，userId: {}, artistId: {}, username: {}", 
+                            userId, existingArtist.getArtistId(), user.getUsername());
+                    existingArtist.setAvatar(avatarUrl);
+                    int updateResult = artistMapper.updateById(existingArtist);
+                    if (updateResult > 0) {
+                        log.info("成功同步更新原创歌手头像，userId: {}, artistId: {}", 
+                                userId, existingArtist.getArtistId());
+                    } else {
+                        log.warn("同步更新原创歌手头像失败，userId: {}, artistId: {}", 
+                                userId, existingArtist.getArtistId());
+                    }
+                    
+                    // 清除歌手缓存，确保更新后的头像能立即显示
+                    try {
+                        java.util.Set<Object> keys = redisTemplate.keys("artistCache::*");
+                        if (keys != null && !keys.isEmpty()) {
+                            redisTemplate.delete(keys);
+                            log.info("已清除歌手缓存，清除数量: {}", keys.size());
+                        }
+                    } catch (Exception cacheException) {
+                        log.warn("清除歌手缓存失败", cacheException);
+                    }
+                } else {
+                    log.info("用户是原创歌手但未找到对应的歌手记录，userId: {}, username: {}", 
+                            userId, user.getUsername());
+                }
+            } catch (Exception e) {
+                log.error("同步更新歌手头像失败，userId: {}", userId, e);
+                // 不抛出异常，因为用户头像更新已经成功
+            }
+        }
+        
         return Result.success(MessageConstant.UPDATE + MessageConstant.SUCCESS);
     }
 

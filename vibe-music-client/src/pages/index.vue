@@ -96,6 +96,7 @@ const transformSongData = (data: any[]) => {
     ],
     duration: item.duration,
     audioUrl: item.audioUrl,
+    coverUrl: item.coverUrl || '',  // 添加封面URL
     likeStatus: item.likeStatus || 0  // 从服务端获取收藏状态
   }))
 }
@@ -215,7 +216,7 @@ const isCurrentPlaying = (songId: number) => {
                 <!-- 专辑封面 -->
                 <div class="w-16 h-16 rounded-2xl overflow-hidden relative">
                   <el-image :alt="item.name" width="64" height="64" class="w-full h-full object-cover"
-                    :src="item.coverUrl + '?param=90y90'" />
+                    :src="item.coverUrl ? (item.coverUrl + '?param=90y90') : coverImg" />
                   <!-- Play 按钮，使用 group-hover 控制透明度 -->
                   <button @click.stop="handlePlaylclick(item, 'today')"
                     class="absolute inset-0 flex items-center justify-center text-white opacity-0 transition-opacity duration-300 z-10 group-hover:opacity-100 group-hover:bg-black/50">
@@ -264,7 +265,7 @@ const isCurrentPlaying = (songId: number) => {
               <!-- 专辑封面 -->
               <div class="w-16 h-16 rounded-2xl overflow-hidden relative">
                 <el-image :alt="item.name" width="64" height="64" class="w-full h-full object-cover"
-                  :src="item.coverUrl + '?param=90y90'" />
+                  :src="item.coverUrl ? (item.coverUrl + '?param=90y90') : coverImg" />
                 <!-- Play 按钮，使用 group-hover 控制透明度 -->
                 <button @click.stop="handlePlaylclick(item, 'similar')"
                   class="absolute inset-0 flex items-center justify-center text-white opacity-0 transition-opacity duration-300 z-10 group-hover:opacity-100 group-hover:bg-black/50">

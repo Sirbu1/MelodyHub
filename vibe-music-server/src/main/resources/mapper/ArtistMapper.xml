@@ -39,8 +39,15 @@
                s.audio_url    AS audioUrl,
                s.release_time AS releaseTime
         FROM tb_artist a
-                 LEFT JOIN tb_song s ON a.id = s.artist_id
+                 LEFT JOIN tb_song s ON (
+                     (a.id = s.artist_id) OR 
+                     (a.gender = 3 AND EXISTS (
+                         SELECT 1 FROM tb_user u 
+                         WHERE u.username = a.name AND u.id = s.creator_id
+                     ))
+                 ) AND (s.audit_status = 1 OR s.audit_status IS NULL)
         WHERE a.id = #{artistId}
+        ORDER BY s.release_time DESC
     </select>
 
 </mapper>

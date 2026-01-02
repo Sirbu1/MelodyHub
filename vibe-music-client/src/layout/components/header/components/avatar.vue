@@ -20,12 +20,15 @@ const handleLogout = async () => {
     if (response.code === 0) {
       user.clearUserInfo()
       ElMessage.success('退出登录成功')
-      // 如果当前在个人信息页面，则跳转到首页并刷新
-      if (route.path === '/user') {
+      // 无论当前在哪个页面，都跳转到首页并刷新
+      if (route.path !== '/') {
         router.push('/').then(() => {
           // 刷新页面以确保清除所有状态
           window.location.reload()
         })
+      } else {
+        // 如果已经在首页，直接刷新
+        window.location.reload()
       }
     } else {
       ElMessage.error(response.message || '退出失败')
@@ -35,12 +38,15 @@ const handleLogout = async () => {
     ElMessage.error(error.message || '退出失败')
     // 即使请求失败也清除用户信息
     user.clearUserInfo()
-    // 如果当前在个人信息页面，则跳转到首页并刷新
-    if (route.path === '/user') {
+    // 无论当前在哪个页面，都跳转到首页并刷新
+    if (route.path !== '/') {
       router.push('/').then(() => {
         // 刷新页面以确保清除所有状态
         window.location.reload()
       })
+    } else {
+      // 如果已经在首页，直接刷新
+      window.location.reload()
     }
   }
 }

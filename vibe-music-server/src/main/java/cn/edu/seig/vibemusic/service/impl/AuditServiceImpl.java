@@ -132,13 +132,18 @@ public class AuditServiceImpl implements IAuditService {
                                 (artist.getIntroduction().length() > 20 ? 
                                 artist.getIntroduction().substring(0, 20) + "..." : artist.getIntroduction()) : "null");
                         
-                        int insertResult = artistMapper.insert(artist);
-                        if (insertResult > 0) {
-                            log.info("审核通过：成功创建原创歌手记录，userId: {}, username: {}, artistId: {}", 
-                                    user.getUserId(), user.getUsername(), artist.getArtistId());
-                        } else {
-                            log.error("审核通过：创建原创歌手记录失败，userId: {}, username: {}, insertResult: {}", 
-                                    user.getUserId(), user.getUsername(), insertResult);
+                        try {
+                            int insertResult = artistMapper.insert(artist);
+                            if (insertResult > 0) {
+                                log.info("审核通过：成功创建原创歌手记录，userId: {}, username: {}, artistId: {}", 
+                                        user.getUserId(), user.getUsername(), artist.getArtistId());
+                            } else {
+                                log.error("审核通过：创建原创歌手记录失败，userId: {}, username: {}, insertResult: {}", 
+                                        user.getUserId(), user.getUsername(), insertResult);
+                            }
+                        } catch (Exception insertException) {
+                            log.error("审核通过：插入歌手记录时发生异常，userId: {}, username: {}, 错误: {}", 
+                                    user.getUserId(), user.getUsername(), insertException.getMessage(), insertException);
                         }
                     }
                     // 清除歌手缓存，确保新创建的歌手能立即显示

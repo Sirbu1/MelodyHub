@@ -32,6 +32,7 @@ import org.springframework.cache.annotation.CacheConfig;
 import org.springframework.cache.annotation.CacheEvict;
 import org.springframework.cache.annotation.Cacheable;
 import org.springframework.stereotype.Service;
+import lombok.extern.slf4j.Slf4j;
 
 import java.util.List;
 import java.util.Map;
@@ -46,6 +47,7 @@ import java.util.stream.Collectors;
  * @author sunpingli
  * @since 2025-01-09
  */
+@Slf4j
 @Service
 @CacheConfig(cacheNames = "artistCache")
 public class ArtistServiceImpl extends ServiceImpl<ArtistMapper, Artist> implements IArtistService {
@@ -64,8 +66,14 @@ public class ArtistServiceImpl extends ServiceImpl<ArtistMapper, Artist> impleme
      * @return 歌手列表
      */
     @Override
-    @Cacheable(key = "#artistDTO.pageNum + '-' + #artistDTO.pageSize + '-' + #artistDTO.artistName + '-' + #artistDTO.gender + '-' + #artistDTO.area")
+    // @Cacheable(key = "#artistDTO.pageNum + '-' + #artistDTO.pageSize + '-' + #artistDTO.artistName + '-' + #artistDTO.gender + '-' + #artistDTO.area")  // 临时禁用缓存以便调试
     public Result<PageResult<ArtistVO>> getAllArtists(ArtistDTO artistDTO) {
+        log.info("======================================");
+        log.info("客户端查询歌手列表，pageNum: {}, pageSize: {}, artistName: {}, gender: {}, area: {}", 
+                artistDTO.getPageNum(), artistDTO.getPageSize(), artistDTO.getArtistName(), 
+                artistDTO.getGender(), artistDTO.getArea());
+        log.info("======================================");
+        
         // 分页查询
         Page<Artist> page = new Page<>(artistDTO.getPageNum(), artistDTO.getPageSize());
         QueryWrapper<Artist> queryWrapper = new QueryWrapper<>();
@@ -73,6 +81,78 @@ public class ArtistServiceImpl extends ServiceImpl<ArtistMapper, Artist> impleme
         if (artistDTO.getArtistName() != null && !artistDTO.getArtistName().trim().isEmpty()) {
             queryWrapper.like("name", artistDTO.getArtistName());
         }
+        if (artistDTO.getGender() != null) {
+            queryWrapper.eq("gender", artistDTO.getGender());
+            // 如果是原创歌手（gender=3），只显示上传过已通过审核的原创歌曲的用户
+            if (artistDTO.getGender() == 3) {
+                log.info("查询原创歌手，添加IN子查询条件");
+                // 使用IN子查询：只返回那些用户名在"上传过已通过审核的原创歌曲的用户"列表中的歌手
+                queryWrapper.inSql("name", 
+                    "SELECT u.username FROM tb_user u " +
+                    "INNER JOIN tb_song s ON u.id = s.creator_id " +
+                    "WHERE s.is_original = true " +
+                    "AND (s.audit_status = 1 OR s.audit_status IS NULL) " +
+                    "GROUP BY u.username");
+            }
+        } else {
+            // 如果没有指定gender，排除原创歌手（gender=3），因为原创歌手需要特殊处理
+            queryWrapper.ne("gender", 3);
+            log.info("未指定gender，排除原创歌手");
+        }
+        if (artistDTO.getArea() != null && !artistDTO.getArea().trim().isEmpty()) {
+            queryWrapper.like("area", artistDTO.getArea());
+        }
+
+        log.info("执行查询，QueryWrapper: {}", queryWrapper.getSqlSegment());
+        IPage<Artist> artistPage = artistMapper.selectPage(page, queryWrapper);
+        log.info("查询结果：总数 {}, 当前页记录数 {}", artistPage.getTotal(), artistPage.getRecords().size());
+        
+        if (artistPage.getRecords().size() == 0) {
+            log.warn("没有找到符合条件的歌手");
+            return Result.success(MessageConstant.DATA_NOT_FOUND, new PageResult<>(0L, List.of()));
+        }
+
+        // 转换成 ArtistVO
+        List<ArtistVO> artistVOList = artistPage.getRecords().stream()
+                .map(artist -> {
+                    ArtistVO artistVO = new ArtistVO();
+                    BeanUtils.copyProperties(artist, artistVO);
+                    log.debug("转换歌手：artistId={}, artistName={}, gender={}", 
+                            artist.getArtistId(), artist.getArtistName(), artist.getGender());
+                    return artistVO;
+                }).toList();
+
+        log.info("成功返回 {} 个歌手", artistVOList.size());
+        return Result.success(new PageResult<>(artistPage.getTotal(), artistVOList));
+    }
+
+    /**
+     * 获取所有歌手列表（含详情）
+     *
+     * @param artistDTO artistDTO
+     * @return 歌手列表
+     */
+    @Override
+    // @Cacheable(key = "#artistDTO.pageNum + '-' + #artistDTO.pageSize + '-' + #artistDTO.artistName + '-' + #artistDTO.gender + '-' + #artistDTO.area + '-admin'")  // 临时禁用缓存以便调试
+    public Result<PageResult<Artist>> getAllArtistsAndDetail(ArtistDTO artistDTO) {
+        log.info("======================================");
+        log.info("管理端查询歌手列表，pageNum: {}, pageSize: {}, artistName: {}, gender: {}, area: {}", 
+                artistDTO.getPageNum(), artistDTO.getPageSize(), artistDTO.getArtistName(), 
+                artistDTO.getGender(), artistDTO.getArea());
+        log.info("artistName类型: {}, gender类型: {}", 
+                artistDTO.getArtistName() != null ? artistDTO.getArtistName().getClass().getName() : "null",
+                artistDTO.getGender() != null ? artistDTO.getGender().getClass().getName() : "null");
+        log.info("======================================");
+        // 分页查询
+        Page<Artist> page = new Page<>(artistDTO.getPageNum(), artistDTO.getPageSize());
+        QueryWrapper<Artist> queryWrapper = new QueryWrapper<>();
+        // 根据 artistDTO 的条件构建查询条件
+        boolean hasSearchKeyword = artistDTO.getArtistName() != null && !artistDTO.getArtistName().trim().isEmpty();
+        
+        if (hasSearchKeyword) {
+            queryWrapper.like("name", artistDTO.getArtistName());
+        }
+        
         if (artistDTO.getGender() != null) {
             queryWrapper.eq("gender", artistDTO.getGender());
             // 如果是原创歌手（gender=3），只显示上传过已通过审核的原创歌曲的用户
@@ -86,56 +166,23 @@ public class ArtistServiceImpl extends ServiceImpl<ArtistMapper, Artist> impleme
                     "GROUP BY u.username");
             }
         } else {
-            // 如果没有指定gender，排除原创歌手（gender=3），因为原创歌手需要特殊处理
-            queryWrapper.ne("gender", 3);
-        }
-        if (artistDTO.getArea() != null && !artistDTO.getArea().trim().isEmpty()) {
-            queryWrapper.like("area", artistDTO.getArea());
-        }
-
-        IPage<Artist> artistPage = artistMapper.selectPage(page, queryWrapper);
-        if (artistPage.getRecords().size() == 0) {
-            return Result.success(MessageConstant.DATA_NOT_FOUND, new PageResult<>(0L, null));
-        }
-
-        // 转换成 ArtistVO
-        List<ArtistVO> artistVOList = artistPage.getRecords().stream()
-                .map(artist -> {
-                    ArtistVO artistVO = new ArtistVO();
-                    BeanUtils.copyProperties(artist, artistVO);
-                    return artistVO;
-                }).toList();
-
-        return Result.success(new PageResult<>(artistPage.getTotal(), artistVOList));
-    }
-
-    /**
-     * 获取所有歌手列表（含详情）
-     *
-     * @param artistDTO artistDTO
-     * @return 歌手列表
-     */
-    @Override
-    @Cacheable(key = "#artistDTO.pageNum + '-' + #artistDTO.pageSize + '-' + #artistDTO.artistName + '-' + #artistDTO.gender + '-' + #artistDTO.area + '-admin'")
-    public Result<PageResult<Artist>> getAllArtistsAndDetail(ArtistDTO artistDTO) {
-        // 分页查询
-        Page<Artist> page = new Page<>(artistDTO.getPageNum(), artistDTO.getPageSize());
-        QueryWrapper<Artist> queryWrapper = new QueryWrapper<>();
-        // 根据 artistDTO 的条件构建查询条件
-        if (artistDTO.getArtistName() != null) {
-            queryWrapper.like("name", artistDTO.getArtistName());
-        }
-        if (artistDTO.getGender() != null) {
-            queryWrapper.eq("gender", artistDTO.getGender());
-            // 如果是原创歌手（gender=3），只显示上传过已通过审核的原创歌曲的用户
-            if (artistDTO.getGender() == 3) {
-                // 使用IN子查询：只返回那些用户名在"上传过已通过审核的原创歌曲的用户"列表中的歌手
-                queryWrapper.inSql("name", 
-                    "SELECT u.username FROM tb_user u " +
-                    "INNER JOIN tb_song s ON u.id = s.creator_id " +
-                    "WHERE s.is_original = true " +
-                    "AND (s.audit_status = 1 OR s.audit_status IS NULL) " +
-                    "GROUP BY u.username");
+            // 如果没有指定gender
+            if (!hasSearchKeyword) {
+                // 没有搜索关键词时，排除原创歌手（gender=3），因为原创歌手需要特殊处理
+                queryWrapper.ne("gender", 3);
+            } else {
+                // 有搜索关键词时，允许搜索所有类型，但原创歌手需要满足条件
+                // 使用嵌套条件：(非原创歌手) OR (原创歌手 AND 有已通过审核的歌曲)
+                queryWrapper.and(wrapper -> {
+                    wrapper.ne("gender", 3)
+                           .or(w -> w.eq("gender", 3)
+                                    .inSql("name", 
+                                        "SELECT u.username FROM tb_user u " +
+                                        "INNER JOIN tb_song s ON u.id = s.creator_id " +
+                                        "WHERE s.is_original = true " +
+                                        "AND (s.audit_status = 1 OR s.audit_status IS NULL) " +
+                                        "GROUP BY u.username"));
+                });
             }
         }
         if (artistDTO.getArea() != null) {
@@ -145,9 +192,15 @@ public class ArtistServiceImpl extends ServiceImpl<ArtistMapper, Artist> impleme
         // 倒序排序
         queryWrapper.orderByDesc("id");
 
+        log.info("执行查询，SQL条件: {}", queryWrapper.getSqlSegment());
+        log.info("执行查询，参数: {}", queryWrapper.getParamNameValuePairs());
+        
         IPage<Artist> artistPage = artistMapper.selectPage(page, queryWrapper);
+        log.info("查询结果：总数 {}, 当前页记录数 {}", artistPage.getTotal(), artistPage.getRecords().size());
+        
         if (artistPage.getRecords().size() == 0) {
-            return Result.success(MessageConstant.DATA_NOT_FOUND, new PageResult<>(0L, null));
+            log.warn("没有找到符合条件的歌手");
+            return Result.success(MessageConstant.DATA_NOT_FOUND, new PageResult<>(0L, List.of()));
         }
 
         return Result.success(new PageResult<>(artistPage.getTotal(), artistPage.getRecords()));
@@ -222,12 +275,29 @@ public class ArtistServiceImpl extends ServiceImpl<ArtistMapper, Artist> impleme
      * @return 歌手详情
      */
     @Override
-    @Cacheable(key = "#artistId")
+    // @Cacheable(key = "#artistId")  // 临时禁用缓存以便调试
     public Result<ArtistDetailVO> getArtistDetail(Long artistId, HttpServletRequest request) {
+        log.info("======================================");
+        log.info("查询歌手详情，artistId: {}", artistId);
         ArtistDetailVO artistDetailVO = artistMapper.getArtistDetailById(artistId);
+        
+        if (artistDetailVO == null) {
+            log.error("未找到歌手详情，artistId: {}", artistId);
+            return Result.error(MessageConstant.NOT_FOUND);
+        }
+        
+        log.info("查询到歌手详情：artistId={}, artistName={}, gender={}, avatar={}, songs.size={}", 
+                artistDetailVO.getArtistId(), artistDetailVO.getArtistName(), 
+                artistDetailVO.getGender(), artistDetailVO.getAvatar(), 
+                artistDetailVO.getSongs() != null ? artistDetailVO.getSongs().size() : 0);
+        log.info("======================================");
 
         // 设置默认状态
         List<SongVO> songVOList = artistDetailVO.getSongs();
+        if (songVOList == null) {
+            songVOList = List.of();
+            artistDetailVO.setSongs(songVOList);
+        }
         songVOList.forEach(songVO -> songVO.setLikeStatus(LikeStatusEnum.DEFAULT.getId()));
 
         // 获取请求头中的 token

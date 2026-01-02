@@ -64,7 +64,7 @@ const handleGetArtistList = () => {
 
   getAllArtists(params).then((res) => {
     if (res.code === 0 && res.data) {
-      artistList.value = res.data.items.map(item => ({
+      artistList.value = (res.data.items || []).map(item => ({
         artistId: item.artistId,
         name: item.artistName,
         picUrl: item.avatar,
@@ -94,7 +94,7 @@ const handleSearch = () => {
 
   getAllArtists(params).then((res) => {
     if (res.code === 0 && res.data) {
-      artistList.value = res.data.items.map(item => ({
+      artistList.value = (res.data.items || []).map(item => ({
         artistId: item.artistId,
         name: item.artistName,
         picUrl: item.avatar,

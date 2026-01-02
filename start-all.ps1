@@ -15,6 +15,37 @@ $AdminDir = Join-Path $ProjectRoot "vibe-music-admin"
 $MinioExe = "D:\MinIO\minio.exe"
 $MinioDataDir = "D:\MinIO\data"
 
+# Function to clean up all backend Java processes
+function Clean-BackendProcesses {
+    Write-Host "  Cleaning up any existing backend processes..." -ForegroundColor Cyan
+    try {
+        $javaProcesses = Get-Process -Name "java" -ErrorAction SilentlyContinue | Where-Object {
+            try {
+                $wmiProcess = Get-WmiObject Win32_Process -Filter "ProcessId = $($_.Id)" -ErrorAction SilentlyContinue
+                if ($wmiProcess -and ($wmiProcess.CommandLine -like "*vibe-music-server*" -or $wmiProcess.CommandLine -like "*spring-boot*")) {
+                    return $true
+                }
+            } catch {
+                return $false
+            }
+            return $false
+        }
+        
+        if ($javaProcesses) {
+            foreach ($proc in $javaProcesses) {
+                Write-Host "  Stopping backend process: PID $($proc.Id)" -ForegroundColor Gray
+                Stop-Process -Id $proc.Id -Force -ErrorAction SilentlyContinue
+            }
+            Start-Sleep -Seconds 2
+            Write-Host "  [OK] Cleaned up backend processes" -ForegroundColor Green
+        } else {
+            Write-Host "  [OK] No existing backend processes found" -ForegroundColor Green
+        }
+    } catch {
+        Write-Host "  [!] Error cleaning up processes: $($_.Exception.Message)" -ForegroundColor Yellow
+    }
+}
+
 # ============================================
 # 1. Start MySQL
 # ============================================
@@ -190,62 +221,105 @@ try {
 # ============================================
 Write-Host "[4/6] Building and Starting Backend..." -ForegroundColor Yellow
 
-# Check if port 8080 is already in use
-Write-Host "  Checking if port 8080 is available..." -ForegroundColor Cyan
-$port8080InUse = $false
-try {
-    $connection = Test-NetConnection -ComputerName localhost -Port 8080 -WarningAction SilentlyContinue -InformationLevel Quiet -ErrorAction SilentlyContinue
-    if ($connection) {
-        $port8080InUse = $true
-        Write-Host "  [!] Port 8080 is already in use" -ForegroundColor Yellow
+# Clean up any existing backend processes first
+Clean-BackendProcesses
+
+# Function to check and free a port
+function Free-Port {
+    param([int]$Port, [int]$MaxRetries = 3)
+    
+    $retryCount = 0
+    while ($retryCount -lt $MaxRetries) {
+        $retryCount++
+        Write-Host "  Checking port $Port (attempt $retryCount/$MaxRetries)..." -ForegroundColor Cyan
         
-        # Try to find and kill the process using port 8080
-        Write-Host "  Attempting to free port 8080..." -ForegroundColor Cyan
         try {
-            # Find process using port 8080 using PowerShell native cmdlet
-            $tcpConnection = Get-NetTCPConnection -LocalPort 8080 -State Listen -ErrorAction SilentlyContinue
-            if ($tcpConnection) {
-                $pid = $tcpConnection.OwningProcess
-                if ($pid) {
-                    $process = Get-Process -Id $pid -ErrorAction SilentlyContinue
-                    if ($process) {
-                        Write-Host "  Found process: $($process.ProcessName) (PID: $pid)" -ForegroundColor Gray
-                        # Check if it's a Java process (likely our backend)
-                        if ($process.ProcessName -eq "java" -or $process.Path -like "*java*" -or $process.Path -like "*vibe-music-server*") {
-                            Write-Host "  Stopping Java process (likely previous backend instance)..." -ForegroundColor Yellow
-                            Stop-Process -Id $pid -Force -ErrorAction SilentlyContinue
-                            Start-Sleep -Seconds 3
+            $connection = Test-NetConnection -ComputerName localhost -Port $Port -WarningAction SilentlyContinue -InformationLevel Quiet -ErrorAction SilentlyContinue
+            if (-not $connection) {
+                Write-Host "  [OK] Port $Port is available" -ForegroundColor Green
+                return $true
+            }
+            
+            Write-Host "  [!] Port $Port is already in use" -ForegroundColor Yellow
+            
+            # Find all processes using this port
+            $tcpConnections = Get-NetTCPConnection -LocalPort $Port -State Listen -ErrorAction SilentlyContinue
+            if ($tcpConnections) {
+                $pids = $tcpConnections | Select-Object -ExpandProperty OwningProcess -Unique
+                foreach ($pid in $pids) {
+                    try {
+                        $process = Get-Process -Id $pid -ErrorAction SilentlyContinue
+                        if ($process) {
+                            Write-Host "  Found process: $($process.ProcessName) (PID: $pid)" -ForegroundColor Gray
                             
-                            # Verify port is now free
-                            $connectionAfter = Test-NetConnection -ComputerName localhost -Port 8080 -WarningAction SilentlyContinue -InformationLevel Quiet -ErrorAction SilentlyContinue
-                            if (-not $connectionAfter) {
-                                Write-Host "  [OK] Port 8080 is now free" -ForegroundColor Green
-                                $port8080InUse = $false
-                            } else {
-                                Write-Host "  [!] Port 8080 is still in use after stopping process" -ForegroundColor Yellow
+                            # Check if it's a Java process (likely our backend)
+                            $isJavaProcess = $false
+                            if ($process.ProcessName -eq "java") {
+                                # Try to get command line to verify it's our backend
+                                try {
+                                    $wmiProcess = Get-WmiObject Win32_Process -Filter "ProcessId = $pid" -ErrorAction SilentlyContinue
+                                    if ($wmiProcess -and ($wmiProcess.CommandLine -like "*vibe-music-server*" -or $wmiProcess.CommandLine -like "*spring-boot*")) {
+                                        $isJavaProcess = $true
+                                    }
+                                } catch {
+                                    # If we can't check command line, assume it's our backend if it's Java
+                                    $isJavaProcess = $true
+                                }
                             }
-                        } else {
-                            Write-Host "  [!] Port 8080 is used by non-Java process: $($process.ProcessName)" -ForegroundColor Yellow
-                            Write-Host "  Please manually stop the process or use a different port" -ForegroundColor Yellow
+                            
+                            if ($isJavaProcess) {
+                                Write-Host "  Stopping Java process (likely previous backend instance)..." -ForegroundColor Yellow
+                                Stop-Process -Id $pid -Force -ErrorAction SilentlyContinue
+                                Start-Sleep -Seconds 2
+                            } else {
+                                Write-Host "  [!] Port $Port is used by non-Java process: $($process.ProcessName)" -ForegroundColor Yellow
+                                Write-Host "  This might not be our backend. Proceeding anyway..." -ForegroundColor Yellow
+                                # Still try to stop it if user wants
+                                Stop-Process -Id $pid -Force -ErrorAction SilentlyContinue
+                                Start-Sleep -Seconds 2
+                            }
                         }
+                    } catch {
+                        Write-Host "  [!] Error stopping process $pid : $($_.Exception.Message)" -ForegroundColor Yellow
                     }
                 }
+                
+                # Wait a bit and verify port is free
+                Start-Sleep -Seconds 2
+                $connectionAfter = Test-NetConnection -ComputerName localhost -Port $Port -WarningAction SilentlyContinue -InformationLevel Quiet -ErrorAction SilentlyContinue
+                if (-not $connectionAfter) {
+                    Write-Host "  [OK] Port $Port is now free" -ForegroundColor Green
+                    return $true
+                } else {
+                    Write-Host "  [!] Port $Port is still in use after stopping processes" -ForegroundColor Yellow
+                }
             } else {
-                Write-Host "  [!] Could not identify process using port 8080" -ForegroundColor Yellow
+                Write-Host "  [!] Could not identify processes using port $Port" -ForegroundColor Yellow
             }
         } catch {
-            Write-Host "  [!] Error while trying to free port 8080: $($_.Exception.Message)" -ForegroundColor Yellow
+            Write-Host "  [!] Error checking port $Port : $($_.Exception.Message)" -ForegroundColor Yellow
         }
         
-        if ($port8080InUse) {
-            Write-Host "  [!] Warning: Port 8080 is still in use. Backend may fail to start." -ForegroundColor Red
-            Write-Host "  Please manually close the application using port 8080 and try again." -ForegroundColor Yellow
+        if ($retryCount -lt $MaxRetries) {
+            Write-Host "  Retrying in 2 seconds..." -ForegroundColor Gray
+            Start-Sleep -Seconds 2
         }
-    } else {
-        Write-Host "  [OK] Port 8080 is available" -ForegroundColor Green
     }
-} catch {
-    Write-Host "  [!] Could not check port 8080 status" -ForegroundColor Yellow
+    
+    Write-Host "  [!] Failed to free port $Port after $MaxRetries attempts" -ForegroundColor Red
+    return $false
+}
+
+# Check and free port 8080
+$backendPort = 8080
+$portFreed = Free-Port -Port $backendPort -MaxRetries 3
+
+if (-not $portFreed) {
+    Write-Host "  [!] Warning: Port $backendPort is still in use. Backend may fail to start." -ForegroundColor Red
+    Write-Host "  Options:" -ForegroundColor Yellow
+    Write-Host "    1. Manually stop the process using port $backendPort" -ForegroundColor Yellow
+    Write-Host "    2. Change backend port in application.yml" -ForegroundColor Yellow
+    Write-Host "  Continuing anyway..." -ForegroundColor Yellow
 }
 
 Write-Host "  Building backend project, please wait..." -ForegroundColor Cyan
@@ -258,55 +332,8 @@ if ($LASTEXITCODE -eq 0) {
     Write-Host "  Starting backend server in new window..." -ForegroundColor Cyan
     Start-Process powershell -ArgumentList "-NoExit","-Command","cd `"$ServerDir`"; java -jar target/vibe-music-server-0.0.1-SNAPSHOT.jar"
     Write-Host "  [OK] Backend server started" -ForegroundColor Green
-    
-    # Wait for backend to be ready by checking if port 8080 is listening AND HTTP response
-    Write-Host "  Waiting for backend to be ready..." -ForegroundColor Yellow
-    $maxAttempts = 60  # Increase to 60 seconds for backend initialization
-    $attempt = 0
-    $backendReady = $false
-    
-    while ($attempt -lt $maxAttempts -and -not $backendReady) {
-        $attempt++
-        try {
-            # First check if port 8080 is listening
-            $connection = Test-NetConnection -ComputerName localhost -Port 8080 -WarningAction SilentlyContinue -InformationLevel Quiet -ErrorAction SilentlyContinue
-            if ($connection) {
-                # Port is open, try to make an HTTP request to verify backend is fully ready
-                try {
-                    $response = Invoke-WebRequest -Uri "http://localhost:8080" -Method Get -TimeoutSec 3 -ErrorAction SilentlyContinue -UseBasicParsing
-                    # If we get any HTTP response (even 404), backend is ready
-                    $backendReady = $true
-                    Write-Host "  [OK] Backend is ready!" -ForegroundColor Green
-                } catch {
-                    # HTTP request failed, backend might still be starting
-                    Start-Sleep -Seconds 2
-                    if ($attempt % 10 -eq 0) {
-                        Write-Host "  Waiting for backend HTTP response... ($attempt/$maxAttempts)" -ForegroundColor Gray
-                    }
-                }
-            } else {
-                Start-Sleep -Seconds 2
-                if ($attempt % 10 -eq 0) {
-                    Write-Host "  Waiting for backend port 8080... ($attempt/$maxAttempts)" -ForegroundColor Gray
-                }
-            }
-        } catch {
-            # Backend not ready yet, continue waiting
-            Start-Sleep -Seconds 2
-            if ($attempt % 10 -eq 0) {
-                Write-Host "  Waiting... ($attempt/$maxAttempts)" -ForegroundColor Gray
-            }
-        }
-    }
-    
-    if (-not $backendReady) {
-        Write-Host "  [!] Backend may not be fully ready yet" -ForegroundColor Yellow
-        Write-Host "  [!] Please check the backend window for error messages" -ForegroundColor Yellow
-        Write-Host "  [!] Common issues:" -ForegroundColor Yellow
-        Write-Host "      - Database connection failed (check MySQL)" -ForegroundColor Gray
-        Write-Host "      - Redis connection failed (check Redis)" -ForegroundColor Gray
-        Write-Host "      - MinIO connection failed or bucket not found (check MinIO)" -ForegroundColor Gray
-    }
+    Write-Host "  [INFO] Backend is starting, please wait 20-30 seconds for initialization" -ForegroundColor Cyan
+    Write-Host "  [INFO] Check the backend window for startup logs" -ForegroundColor Cyan
 } else {
     Write-Host "  [!] Backend build failed!" -ForegroundColor Red
     Set-Location $ProjectRoot
