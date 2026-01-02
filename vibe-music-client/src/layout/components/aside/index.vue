@@ -16,7 +16,8 @@ const authVisible = ref(false)
 
 // 处理需要登录的路由
 const handleProtectedRoute = (path: string) => {
-  if (!user.isLoggedIn && (path === '/like' || path === '/user')) {
+  const protectedPaths = ['/like', '/user', '/my/uploads', '/my/orders']
+  if (!user.isLoggedIn && protectedPaths.includes(path)) {
     ElMessage.warning('请先登录')
     authVisible.value = true
     return false

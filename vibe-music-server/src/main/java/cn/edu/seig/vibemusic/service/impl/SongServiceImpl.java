@@ -100,7 +100,17 @@ public class SongServiceImpl extends ServiceImpl<SongMapper, Song> implements IS
 
         Map<String, Object> map = null;
         if (token != null && !token.isEmpty()) {
-            map = JwtUtil.parseToken(token);
+            try {
+                map = JwtUtil.parseToken(token);
+            } catch (com.auth0.jwt.exceptions.TokenExpiredException e) {
+                // Token 过期，按未登录处理
+                log.warn("Token expired, treating as unauthenticated user");
+                map = null;
+            } catch (Exception e) {
+                // Token 解析失败，按未登录处理
+                log.warn("Token parse failed: {}, treating as unauthenticated user", e.getMessage());
+                map = null;
+            }
         }
 
         // 查询歌曲列表
@@ -181,7 +191,17 @@ public class SongServiceImpl extends ServiceImpl<SongMapper, Song> implements IS
 
         Map<String, Object> map = null;
         if (token != null && !token.isEmpty()) {
-            map = JwtUtil.parseToken(token);
+            try {
+                map = JwtUtil.parseToken(token);
+            } catch (com.auth0.jwt.exceptions.TokenExpiredException e) {
+                // Token 过期，按未登录处理
+                log.warn("Token expired, treating as unauthenticated user");
+                map = null;
+            } catch (Exception e) {
+                // Token 解析失败，按未登录处理
+                log.warn("Token parse failed: {}, treating as unauthenticated user", e.getMessage());
+                map = null;
+            }
         }
 
         // 用户未登录，返回随机歌曲列表
@@ -215,24 +235,49 @@ public class SongServiceImpl extends ServiceImpl<SongMapper, Song> implements IS
 
         // 如果 Redis 没有缓存，则查询数据库并缓存
         if (cachedSongs == null || cachedSongs.isEmpty()) {
-            // 根据排序后的风格推荐歌曲（排除已收藏歌曲）
-            cachedSongs = songMapper.getRecommendedSongsByStyles(sortedStyleIds, favoriteSongIds, 80);
-            redisTemplate.opsForList().rightPushAll(redisKey, cachedSongs);
-            redisTemplate.expire(redisKey, 30, TimeUnit.MINUTES); // 设置过期时间 30 分钟
+            // 只有当 sortedStyleIds 和 favoriteSongIds 都不为空时才调用推荐方法
+            // 否则 SQL 的 IN 子句会变成 IN () 导致语法错误
+            if (sortedStyleIds != null && !sortedStyleIds.isEmpty() 
+                    && favoriteSongIds != null && !favoriteSongIds.isEmpty()) {
+                // 根据排序后的风格推荐歌曲（排除已收藏歌曲）
+                cachedSongs = songMapper.getRecommendedSongsByStyles(sortedStyleIds, favoriteSongIds, 80);
+            }
+            // 确保 cachedSongs 不为 null
+            if (cachedSongs == null) {
+                cachedSongs = new ArrayList<>();
+            }
+            // 只有当列表不为空时才缓存
+            if (!cachedSongs.isEmpty()) {
+                redisTemplate.opsForList().rightPushAll(redisKey, cachedSongs);
+                redisTemplate.expire(redisKey, 30, TimeUnit.MINUTES); // 设置过期时间 30 分钟
+            }
+        }
+
+        // 如果缓存列表为空，使用随机歌曲
+        if (cachedSongs == null || cachedSongs.isEmpty()) {
+            cachedSongs = songMapper.getRandomSongsWithArtist();
+            if (cachedSongs == null) {
+                cachedSongs = new ArrayList<>();
+            }
         }
 
         // 随机选取 20 首
-        Collections.shuffle(cachedSongs);
-        List<SongVO> recommendedSongs = cachedSongs.subList(0, Math.min(20, cachedSongs.size()));
+        if (!cachedSongs.isEmpty()) {
+            Collections.shuffle(cachedSongs);
+        }
+        int size = Math.min(20, cachedSongs.size());
+        List<SongVO> recommendedSongs = size > 0 ? cachedSongs.subList(0, size) : new ArrayList<>();
 
         // 如果推荐的歌曲不足 20 首，则用随机歌曲填充
         if (recommendedSongs.size() < 20) {
             List<SongVO> randomSongs = songMapper.getRandomSongsWithArtist();
-            Set<Long> addedSongIds = recommendedSongs.stream().map(SongVO::getSongId).collect(Collectors.toSet());
-            for (SongVO song : randomSongs) {
-                if (recommendedSongs.size() >= 20) break;
-                if (!addedSongIds.contains(song.getSongId())) {
-                    recommendedSongs.add(song);
+            if (randomSongs != null && !randomSongs.isEmpty()) {
+                Set<Long> addedSongIds = recommendedSongs.stream().map(SongVO::getSongId).collect(Collectors.toSet());
+                for (SongVO song : randomSongs) {
+                    if (recommendedSongs.size() >= 20) break;
+                    if (!addedSongIds.contains(song.getSongId())) {
+                        recommendedSongs.add(song);
+                    }
                 }
             }
         }
@@ -292,7 +337,17 @@ public class SongServiceImpl extends ServiceImpl<SongMapper, Song> implements IS
 
         Map<String, Object> map = null;
         if (token != null && !token.isEmpty()) {
-            map = JwtUtil.parseToken(token);
+            try {
+                map = JwtUtil.parseToken(token);
+            } catch (com.auth0.jwt.exceptions.TokenExpiredException e) {
+                // Token 过期，按未登录处理
+                log.warn("Token expired, treating as unauthenticated user");
+                map = null;
+            } catch (Exception e) {
+                // Token 解析失败，按未登录处理
+                log.warn("Token parse failed: {}, treating as unauthenticated user", e.getMessage());
+                map = null;
+            }
         }
 
         // 如果 token 解析成功且用户为登录状态，进一步操作

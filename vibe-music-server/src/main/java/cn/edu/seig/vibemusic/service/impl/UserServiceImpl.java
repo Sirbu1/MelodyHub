@@ -157,8 +157,18 @@ public class UserServiceImpl extends ServiceImpl<UserMapper, User> implements IU
             claims.put(JwtClaimsConstant.EMAIL, user.getEmail());
             String token = JwtUtil.generateToken(claims);
 
-            // 将token存入redis
+            // 先删除该用户之前的token（如果存在）
+            String oldTokenKey = "user:token:" + user.getUserId();
+            String oldToken = stringRedisTemplate.opsForValue().get(oldTokenKey);
+            if (oldToken != null && !oldToken.isEmpty()) {
+                // 删除旧的token
+                stringRedisTemplate.delete(oldToken);
+            }
+
+            // 将新token存入redis（使用token作为key，用于验证）
             stringRedisTemplate.opsForValue().set(token, token, 6, TimeUnit.HOURS);
+            // 同时存储userId到token的映射（用于快速查找和清理）
+            stringRedisTemplate.opsForValue().set(oldTokenKey, token, 6, TimeUnit.HOURS);
 
             return Result.success(MessageConstant.LOGIN + MessageConstant.SUCCESS, token);
         }
@@ -431,6 +441,21 @@ public class UserServiceImpl extends ServiceImpl<UserMapper, User> implements IU
         
         // 注销token（如果token存在则删除，不存在也视为成功，因为用户已经登出）
         try {
+            // 先尝试从token中解析userId
+            try {
+                Map<String, Object> claims = JwtUtil.parseToken(actualToken);
+                Object userIdObj = claims.get(JwtClaimsConstant.USER_ID);
+                if (userIdObj != null) {
+                    Long userId = TypeConversionUtil.toLong(userIdObj);
+                    // 删除userId到token的映射
+                    stringRedisTemplate.delete("user:token:" + userId);
+                }
+            } catch (Exception e) {
+                // 如果解析失败，继续删除token本身
+                log.warn("解析token失败，继续删除token: " + e.getMessage());
+            }
+            
+            // 删除token本身
             stringRedisTemplate.delete(actualToken);
             // 无论删除是否成功，都返回成功，因为用户已经登出
             return Result.success(MessageConstant.LOGOUT + MessageConstant.SUCCESS);

@@ -354,8 +354,8 @@
           
           <el-form-item label="帖子类型">
             <el-radio-group v-model="reuploadPostForm.type">
-              <el-radio :label="0">交流</el-radio>
-              <el-radio :label="1">需求</el-radio>
+              <el-radio :value="0">交流</el-radio>
+              <el-radio :value="1">需求</el-radio>
             </el-radio-group>
           </el-form-item>
           

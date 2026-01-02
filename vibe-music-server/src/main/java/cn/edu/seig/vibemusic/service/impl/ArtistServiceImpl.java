@@ -308,7 +308,17 @@ public class ArtistServiceImpl extends ServiceImpl<ArtistMapper, Artist> impleme
 
         Map<String, Object> map = null;
         if (token != null && !token.isEmpty()) {
-            map = JwtUtil.parseToken(token);
+            try {
+                map = JwtUtil.parseToken(token);
+            } catch (com.auth0.jwt.exceptions.TokenExpiredException e) {
+                // Token 过期，按未登录处理
+                log.warn("Token expired, treating as unauthenticated user");
+                map = null;
+            } catch (Exception e) {
+                // Token 解析失败，按未登录处理
+                log.warn("Token parse failed: {}, treating as unauthenticated user", e.getMessage());
+                map = null;
+            }
         }
 
         // 如果 token 解析成功且用户为登录状态，进一步操作

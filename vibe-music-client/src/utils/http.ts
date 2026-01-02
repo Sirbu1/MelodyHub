@@ -105,6 +105,10 @@ instance.interceptors.response.use(
       
       const isPublicPath = publicPaths.some(path => error.config.url?.includes(path))
 
+      // 获取错误消息（优先使用服务器返回的消息）
+      const errorMessage = error.response?.data?.message || error.response?.data?.msg || error.message || ''
+      const requestUrl = error.config?.url || '未知接口'
+      
       switch (error.response.status) {
         case 401:
           // 如果是登录请求
@@ -123,16 +127,23 @@ instance.interceptors.response.use(
           }
           break
         case 403:
-          ElMessage.error('没有权限')
+          ElMessage.error(errorMessage || '没有权限')
           break
         case 404:
-          ElMessage.error('请求的资源不存在')
+          ElMessage.error(errorMessage || '请求的资源不存在')
           break
         case 500:
-          ElMessage.error('服务器错误')
+          // 显示详细的服务器错误信息
+          console.error('服务器错误:', {
+            url: requestUrl,
+            status: error.response.status,
+            message: errorMessage,
+            data: error.response.data
+          })
+          ElMessage.error(errorMessage || `服务器错误: ${requestUrl}`)
           break
         default:
-          ElMessage.error('网络错误')
+          ElMessage.error(errorMessage || '网络错误')
       }
     } else {
       ElMessage.error('网络连接失败')

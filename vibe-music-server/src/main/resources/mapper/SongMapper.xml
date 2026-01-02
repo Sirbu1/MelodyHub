@@ -136,14 +136,18 @@
         LEFT JOIN tb_artist a ON s.artist_id = a.id
         LEFT JOIN tb_user u ON s.creator_id = u.id
         WHERE (s.audit_status IS NULL OR s.audit_status = 1)
-        AND g.style_id IN
-        <foreach item="item" collection="sortedStyleIds" open="(" separator="," close=")">
-            #{item}
-        </foreach>
-        AND s.id NOT IN
-        <foreach item="item" collection="favoriteSongIds" open="(" separator="," close=")">
-            #{item}
-        </foreach>
+        <if test="sortedStyleIds != null and sortedStyleIds.size() > 0">
+            AND g.style_id IN
+            <foreach item="item" collection="sortedStyleIds" open="(" separator="," close=")">
+                #{item}
+            </foreach>
+        </if>
+        <if test="favoriteSongIds != null and favoriteSongIds.size() > 0">
+            AND s.id NOT IN
+            <foreach item="item" collection="favoriteSongIds" open="(" separator="," close=")">
+                #{item}
+            </foreach>
+        </if>
         ORDER BY s.release_time DESC
         LIMIT #{limit}
     </select>

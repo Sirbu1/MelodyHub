@@ -8,6 +8,7 @@ import cn.edu.seig.vibemusic.result.Result;
 import cn.edu.seig.vibemusic.service.IForumPostService;
 import cn.edu.seig.vibemusic.service.IForumReplyService;
 import jakarta.validation.Valid;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.multipart.MultipartFile;
@@ -20,6 +21,7 @@ import org.springframework.web.multipart.MultipartFile;
  * @author sunpingli
  * @since 2025-01-09
  */
+@Slf4j
 @RestController
 @RequestMapping("/forum")
 public class ForumController {
@@ -29,6 +31,9 @@ public class ForumController {
 
     @Autowired
     private IForumReplyService forumReplyService;
+
+    @Autowired
+    private cn.edu.seig.vibemusic.service.IForumOrderService forumOrderService;
 
     // ==================== 帖子相关接口 ====================
 
@@ -286,6 +291,97 @@ public class ForumController {
         }
         forumReplyAddDTO.setReplyId(replyId);
         return forumReplyService.updateReply(forumReplyAddDTO);
+    }
+
+    // ==================== 接单相关接口 ====================
+
+    /**
+     * 申请接单（其他用户点击接单按钮）
+     *
+     * @param postId 帖子ID
+     * @return 结果
+     */
+    @PostMapping("/order/apply/{postId}")
+    public Result applyOrder(@PathVariable("postId") Long postId) {
+        return forumOrderService.applyOrder(postId);
+    }
+
+    /**
+     * 分页查询需求发布者的接单申请列表
+     *
+     * @param pageNum  页码
+     * @param pageSize 页大小
+     * @param status   状态筛选（可选）：0-待同意，1-已接单未完成，2-已完成
+     * @return 接单申请列表
+     */
+    @GetMapping("/order/applications")
+    public Result getOrderApplicationsByPoster(
+            @RequestParam(value = "pageNum", defaultValue = "1") Integer pageNum,
+            @RequestParam(value = "pageSize", defaultValue = "10") Integer pageSize,
+            @RequestParam(value = "status", required = false) Integer status) {
+        return forumOrderService.getOrderApplicationsByPoster(pageNum, pageSize, status);
+    }
+
+    /**
+     * 同意接单（需求发布者操作）
+     *
+     * @param orderId 接单ID
+     * @return 结果
+     */
+    @PatchMapping("/order/accept/{orderId}")
+    public Result acceptOrder(@PathVariable("orderId") Long orderId) {
+        return forumOrderService.acceptOrder(orderId);
+    }
+
+    /**
+     * 拒绝接单（需求发布者操作）
+     *
+     * @param orderId 接单ID
+     * @return 结果
+     */
+    @PatchMapping("/order/reject/{orderId}")
+    public Result rejectOrder(@PathVariable("orderId") Long orderId) {
+        log.info("收到拒绝接单请求，orderId: {}", orderId);
+        return forumOrderService.rejectOrder(orderId);
+    }
+
+    /**
+     * 标记为已完成（需求发布者操作）
+     *
+     * @param orderId 接单ID
+     * @return 结果
+     */
+    @PatchMapping("/order/complete/{orderId}")
+    public Result completeOrder(@PathVariable("orderId") Long orderId) {
+        return forumOrderService.completeOrder(orderId);
+    }
+
+    /**
+     * 分页查询接单者的接单列表
+     *
+     * @param pageNum  页码
+     * @param pageSize 页大小
+     * @param status   状态筛选（可选）：0-待同意，1-已接单未完成，2-已完成
+     * @return 接单列表
+     */
+    @GetMapping("/order/myOrders")
+    public Result getOrdersByAccepter(
+            @RequestParam(value = "pageNum", defaultValue = "1") Integer pageNum,
+            @RequestParam(value = "pageSize", defaultValue = "10") Integer pageSize,
+            @RequestParam(value = "status", required = false) Integer status) {
+        log.info("ForumController 收到查询接单列表请求 - pageNum: {}, pageSize: {}, status: {}", pageNum, pageSize, status);
+        return forumOrderService.getOrdersByAccepter(pageNum, pageSize, status);
+    }
+
+    /**
+     * 获取接单详情
+     *
+     * @param orderId 接单ID
+     * @return 接单详情
+     */
+    @GetMapping("/order/detail/{orderId}")
+    public Result getOrderDetail(@PathVariable("orderId") Long orderId) {
+        return forumOrderService.getOrderDetail(orderId);
     }
 
 }

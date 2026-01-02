@@ -103,44 +103,57 @@ const transformSongData = (data: any[]) => {
 
 // 刷新今日为你推荐
 const handleRefreshTodaySongs = async () => {
-  const result = await getRecommendedSongs()
-  if (result.code === 0 && Array.isArray(result.data)) {
-    const transformedSongs = transformSongData(result.data)
-    // 今日为你推荐：取前10首
-    todayRecommendedSongs.value = transformedSongs.slice(0, 10)
-  } else {
-    ElNotification({
-      type: 'error',
-      message: '获取推荐歌曲失败',
-      duration: 2000,
-    })
+  try {
+    const result = await getRecommendedSongs()
+    if (result.code === 0 && Array.isArray(result.data)) {
+      const transformedSongs = transformSongData(result.data)
+      // 今日为你推荐：取前10首
+      todayRecommendedSongs.value = transformedSongs.slice(0, 10)
+    } else {
+      // 静默失败，不显示错误提示，避免干扰用户
+      todayRecommendedSongs.value = []
+    }
+  } catch (error) {
+    console.error('获取推荐歌曲失败:', error)
+    // 静默失败，不显示错误提示
+    todayRecommendedSongs.value = []
   }
 }
 
 // 刷新相似推荐
 const handleRefreshSimilarSongs = async () => {
-  const result = await getRecommendedSongs()
-  if (result.code === 0 && Array.isArray(result.data)) {
-    const transformedSongs = transformSongData(result.data)
-    // 相似推荐：取第10首之后的歌曲，如果不足则重新获取一次
-    if (transformedSongs.length > 10) {
-      similarRecommendedSongs.value = transformedSongs.slice(10)
-    } else {
-      // 如果第一次获取的歌曲不足，再获取一次并排除已显示的歌曲
-      const secondResult = await getRecommendedSongs()
-      if (secondResult.code === 0 && Array.isArray(secondResult.data)) {
-        const secondTransformedSongs = transformSongData(secondResult.data)
-        // 排除今日推荐中已显示的歌曲ID
-        const todaySongIds = new Set(todayRecommendedSongs.value.map(s => s.id))
-        similarRecommendedSongs.value = secondTransformedSongs.filter(s => !todaySongIds.has(s.id))
+  try {
+    const result = await getRecommendedSongs()
+    if (result.code === 0 && Array.isArray(result.data)) {
+      const transformedSongs = transformSongData(result.data)
+      // 相似推荐：取第10首之后的歌曲，如果不足则重新获取一次
+      if (transformedSongs.length > 10) {
+        similarRecommendedSongs.value = transformedSongs.slice(10)
+      } else {
+        // 如果第一次获取的歌曲不足，再获取一次并排除已显示的歌曲
+        try {
+          const secondResult = await getRecommendedSongs()
+          if (secondResult.code === 0 && Array.isArray(secondResult.data)) {
+            const secondTransformedSongs = transformSongData(secondResult.data)
+            // 排除今日推荐中已显示的歌曲ID
+            const todaySongIds = new Set(todayRecommendedSongs.value.map(s => s.id))
+            similarRecommendedSongs.value = secondTransformedSongs.filter(s => !todaySongIds.has(s.id))
+          } else {
+            similarRecommendedSongs.value = []
+          }
+        } catch (error) {
+          console.error('获取相似推荐歌曲失败:', error)
+          similarRecommendedSongs.value = []
+        }
       }
+    } else {
+      // 静默失败，不显示错误提示
+      similarRecommendedSongs.value = []
     }
-  } else {
-    ElNotification({
-      type: 'error',
-      message: '获取推荐歌曲失败',
-      duration: 2000,
-    })
+  } catch (error) {
+    console.error('获取相似推荐歌曲失败:', error)
+    // 静默失败，不显示错误提示
+    similarRecommendedSongs.value = []
   }
 }
 

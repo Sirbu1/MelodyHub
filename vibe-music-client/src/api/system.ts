@@ -316,3 +316,48 @@ export const getUserReplies = (userId: number, pageNum: number = 1, pageSize: nu
   }
   return http<ResultTable>('get', `/forum/getUserReplies/${userId}`, { params })
 }
+
+// ==================== 接单相关接口 ====================
+
+/** 申请接单 */
+export const applyOrder = (postId: number) => {
+  return http<Result>('post', `/forum/order/apply/${postId}`)
+}
+
+/** 获取需求发布者的接单申请列表 */
+export const getOrderApplicationsByPoster = (pageNum: number = 1, pageSize: number = 10, status?: number | null) => {
+  const params: any = { pageNum, pageSize }
+  if (status !== undefined && status !== null) {
+    params.status = status
+  }
+  return http<ResultTable>('get', '/forum/order/applications', { params })
+}
+
+/** 同意接单 */
+export const acceptOrder = (orderId: number) => {
+  return http<Result>('patch', `/forum/order/accept/${orderId}`)
+}
+
+/** 拒绝接单 */
+export const rejectOrder = (orderId: number) => {
+  return http<Result>('patch', `/forum/order/reject/${orderId}`)
+}
+
+/** 标记为已完成 */
+export const completeOrder = (orderId: number) => {
+  return http<Result>('patch', `/forum/order/complete/${orderId}`)
+}
+
+/** 获取接单者的接单列表 */
+export const getOrdersByAccepter = (pageNum: number = 1, pageSize: number = 10, status?: number | null) => {
+  const params: any = { pageNum, pageSize }
+  if (status !== undefined && status !== null) {
+    params.status = status
+  }
+  return http<ResultTable>('get', '/forum/order/myOrders', { params })
+}
+
+/** 获取接单详情 */
+export const getOrderDetail = (orderId: number) => {
+  return http<Result>('get', `/forum/order/detail/${orderId}`)
+}

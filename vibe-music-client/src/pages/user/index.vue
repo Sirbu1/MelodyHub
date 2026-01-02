@@ -1,17 +1,18 @@
 <script setup lang="ts">
-import { ref, reactive, onMounted, watch } from 'vue'
+import { ref, reactive, onMounted, onActivated, watch } from 'vue'
 import type { FormInstance, FormRules } from 'element-plus'
 import { ElMessage, ElMessageBox } from 'element-plus'
 import { UserStore } from '@/stores/modules/user'
 import defaultAvatar from '@/assets/user.jpg'
-import { updateUserInfo, updateUserAvatar, deleteUser, getUserInfo } from '@/api/system'
+import { updateUserInfo, updateUserAvatar, deleteUser, getUserInfo, getOrdersByAccepter } from '@/api/system'
 import 'vue-cropper/dist/index.css'
 import { VueCropper } from "vue-cropper";
-import { useRouter } from 'vue-router'
+import { useRouter, useRoute } from 'vue-router'
 import AuthTabs from '@/components/Auth/AuthTabs.vue'
 // import UploadSong from '@/components/UploadSong.vue' // 已注释，个人中心不再显示上传歌曲
 
 const router = useRouter()
+const route = useRoute()
 const userStore = UserStore()
 const loading = ref(false)
 const userFormRef = ref<FormInstance>()
@@ -20,6 +21,14 @@ const cropperImg = ref('')
 const cropper = ref<any>(null)
 const authVisible = ref(false)
 const activeTab = ref('profile')
+
+// 接单列表相关
+const orders = ref<any[]>([])
+const orderLoading = ref(false)
+const orderCurrentPage = ref(1)
+const orderPageSize = ref(10)
+const orderTotal = ref(0)
+const orderStatusFilter = ref<number | null>(null)
 
 const userForm = reactive({
   userId: userStore.userInfo.userId,
@@ -227,6 +236,113 @@ const handleDelete = async () => {
     loading.value = false
   }
 }
+
+// 获取接单列表
+const getOrders = async () => {
+  if (!userStore.isLoggedIn) return
+  
+  orderLoading.value = true
+  try {
+    const res = await getOrdersByAccepter(orderCurrentPage.value, orderPageSize.value, orderStatusFilter.value)
+    if (res.code === 0 && res.data) {
+      orders.value = res.data.items || []
+      orderTotal.value = res.data.total || 0
+    }
+  } catch (error) {
+    console.error('获取接单列表失败', error)
+  } finally {
+    orderLoading.value = false
+  }
+}
+
+// 接单状态筛选变化
+const handleOrderStatusChange = () => {
+  orderCurrentPage.value = 1
+  getOrders()
+}
+
+// 接单列表分页变化
+const handleOrderPageChange = () => {
+  getOrders()
+}
+
+// 跳转到帖子详情
+const goToPostDetail = (postId: number) => {
+  router.push(`/forum/${postId}`)
+}
+
+// 格式化时间
+const formatOrderTime = (time: string) => {
+  if (!time) return ''
+  const date = new Date(time)
+  return date.toLocaleString('zh-CN', { 
+    year: 'numeric', 
+    month: '2-digit', 
+    day: '2-digit',
+    hour: '2-digit',
+    minute: '2-digit'
+  })
+}
+
+// 获取状态文本
+const getOrderStatusText = (status: number) => {
+  switch (status) {
+    case 0:
+      return '待同意'
+    case 1:
+      return '已接单未完成'
+    case 2:
+      return '已完成'
+    case 3:
+      return '已拒绝'
+    default:
+      return '未知'
+  }
+}
+
+// 获取状态颜色
+const getOrderStatusColor = (status: number) => {
+  switch (status) {
+    case 0:
+      return 'text-yellow-600 bg-yellow-500/10'
+    case 1:
+      return 'text-blue-600 bg-blue-500/10'
+    case 2:
+      return 'text-green-600 bg-green-500/10'
+    case 3:
+      return 'text-red-600 bg-red-500/10'
+    default:
+      return 'text-gray-600 bg-gray-500/10'
+  }
+}
+
+// 监听标签页切换
+watch(activeTab, (newTab) => {
+  if (newTab === 'orders') {
+    getOrders()
+  }
+})
+
+// 监听路由变化，当从帖子详情页返回时刷新接单列表
+watch(() => route.path, (newPath, oldPath) => {
+  // 如果从帖子详情页返回到个人中心页面，且当前在接单标签页，刷新数据
+  if (newPath === '/user' && oldPath && oldPath.startsWith('/forum/')) {
+    if (activeTab.value === 'orders' && userStore.isLoggedIn) {
+      // 延迟一下，确保页面已经加载完成
+      setTimeout(() => {
+        getOrders()
+      }, 100)
+    }
+  }
+})
+
+// 页面激活时刷新数据（从其他页面返回时）
+onActivated(() => {
+  // 如果当前在接单标签页，刷新数据
+  if (activeTab.value === 'orders' && userStore.isLoggedIn) {
+    getOrders()
+  }
+})
 </script>
 
 <template>
@@ -351,6 +467,80 @@ const handleDelete = async () => {
 
         <!-- 登录对话框 -->
         <AuthTabs v-model="authVisible" />
+      </el-tab-pane>
+
+      <!-- 我的接单列表 -->
+      <el-tab-pane label="我的接单" name="orders">
+        <div v-if="!userStore.isLoggedIn" class="text-center py-10 text-muted-foreground">
+          请先登录
+        </div>
+        <div v-else>
+          <!-- 状态筛选 -->
+          <div class="mb-4 flex items-center gap-2">
+            <span class="text-sm text-muted-foreground">状态筛选：</span>
+            <el-select 
+              v-model="orderStatusFilter" 
+              placeholder="全部" 
+              clearable
+              @change="handleOrderStatusChange"
+              style="width: 150px"
+            >
+              <el-option label="全部" :value="null" />
+              <el-option label="待同意" :value="0" />
+              <el-option label="已接单未完成" :value="1" />
+              <el-option label="已完成" :value="2" />
+              <el-option label="已拒绝" :value="3" />
+            </el-select>
+          </div>
+
+          <!-- 接单列表 -->
+          <div v-loading="orderLoading" class="space-y-3">
+            <div v-if="orders.length === 0" class="text-center py-10 text-muted-foreground">
+              暂无接单记录
+            </div>
+            <div 
+              v-for="order in orders" 
+              :key="order.id" 
+              class="p-4 bg-background rounded-lg border border-border hover:border-primary/50 transition-colors cursor-pointer"
+              @click="goToPostDetail(order.postId)"
+            >
+              <div class="flex items-start justify-between">
+                <div class="flex-1">
+                  <div class="flex items-center gap-3 mb-2">
+                    <h3 class="text-base font-medium text-foreground hover:text-primary">
+                      {{ order.postTitle }}
+                    </h3>
+                    <span 
+                      class="text-xs font-medium px-2 py-1 rounded-full"
+                      :class="getOrderStatusColor(order.status)"
+                    >
+                      {{ getOrderStatusText(order.status) }}
+                    </span>
+                  </div>
+                  <div class="text-sm text-muted-foreground space-y-1">
+                    <div>需求发布者：{{ order.posterName }}</div>
+                    <div>申请时间：{{ formatOrderTime(order.createTime) }}</div>
+                    <div v-if="order.status === 2">完成时间：{{ formatOrderTime(order.updateTime) }}</div>
+                    <div v-if="order.status === 3">拒绝时间：{{ formatOrderTime(order.updateTime) }}</div>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <!-- 分页 -->
+          <div v-if="orderTotal > 0" class="mt-4 flex justify-center">
+            <el-pagination
+              v-model:current-page="orderCurrentPage"
+              v-model:page-size="orderPageSize"
+              :total="orderTotal"
+              :page-sizes="[10, 20, 30, 50]"
+              layout="total, sizes, prev, pager, next, jumper"
+              @size-change="handleOrderPageChange"
+              @current-change="handleOrderPageChange"
+            />
+          </div>
+        </div>
       </el-tab-pane>
 
       <!-- 上传歌曲标签页已删除 -->

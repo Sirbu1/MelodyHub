@@ -10,7 +10,11 @@ import {
   cancelLikeForumPost,
   likeForumReply,
   cancelLikeForumReply,
-  updateForumPostAcceptStatus
+  updateForumPostAcceptStatus,
+  applyOrder,
+  acceptOrder,
+  rejectOrder,
+  completeOrder
 } from '@/api/system'
 import { ElNotification, ElMessageBox } from 'element-plus'
 import { UserStore } from '@/stores/modules/user'
@@ -22,6 +26,14 @@ const userStore = UserStore()
 
 // 帖子详情
 const post = ref<any>(null)
+// 帖子详情（包含接单申请列表）
+const postDetailWithOrders = ref<any>(null)
+// 接单申请列表（仅需求发布者可见）
+const orderApplications = ref<any[]>([])
+// 当前用户是否已申请接单
+const hasApplied = ref(false)
+// 当前用户的接单信息（如果是接单者）
+const myOrder = ref<any>(null)
 // 回复列表
 const replies = ref<any[]>([])
 // 加载状态
@@ -46,9 +58,43 @@ const getPostDetail = async () => {
     if (!postId || isNaN(postId)) {
       return
     }
+    
+    // 先清空旧数据，避免显示上一个帖子的数据
+    orderApplications.value = []
+    hasApplied.value = false
+    myOrder.value = null
+    postDetailWithOrders.value = null
+    post.value = null
+    
     const res = await getForumPostDetail(postId)
     if (res.code === 0) {
-      post.value = res.data
+      // 检查返回的数据结构
+      if (res.data && res.data.postDetail) {
+        // 新格式：包含接单申请列表
+        // 后端已经按 postId 过滤了，直接使用返回的数据
+        postDetailWithOrders.value = res.data
+        post.value = res.data.postDetail
+        orderApplications.value = res.data.orderApplications || []
+        hasApplied.value = res.data.hasApplied || false
+        myOrder.value = res.data.myOrder || null
+        
+        // 调试日志
+        console.log('帖子详情加载完成:', {
+          postId: post.value.postId,
+          userId: post.value.userId,
+          currentUserId: userStore.userInfo?.userId,
+          isOwnContent: isOwnContent(post.value.userId),
+          orderApplicationsCount: orderApplications.value.length,
+          orderApplications: orderApplications.value
+        })
+      } else {
+        // 旧格式：直接是帖子详情
+        post.value = res.data
+        postDetailWithOrders.value = null
+        orderApplications.value = []
+        hasApplied.value = false
+        myOrder.value = null
+      }
     } else {
       ElNotification({
         type: 'error',
@@ -316,33 +362,170 @@ const isOwnContent = (userId: number) => {
   return userStore.userInfo?.userId === userId
 }
 
-// 更新接单状态
-const handleUpdateAcceptStatus = async () => {
-  if (!post.value) return
-  
+// 申请接单
+const handleApplyOrder = async () => {
+  if (!post.value || !userStore.userInfo?.token) {
+    ElNotification({
+      type: 'warning',
+      message: '请先登录',
+      duration: 2000,
+    })
+    return
+  }
+
   try {
-    const newStatus = post.value.isAccepted === 1 ? 0 : 1
-    const res = await updateForumPostAcceptStatus(post.value.postId, newStatus)
+    const res = await applyOrder(post.value.postId)
     if (res.code === 0) {
-      post.value.isAccepted = newStatus
+      hasApplied.value = true
       ElNotification({
         type: 'success',
-        message: newStatus === 1 ? '已设置为已接单' : '已设置为未接单',
-        duration: 2000,
+        message: res.message || '接单申请已提交，等待需求发布者同意',
+        duration: 3000,
       })
+      // 重新获取帖子详情
+      await getPostDetail()
+      // 重新启动定时刷新，根据新的接单状态调整刷新间隔（申请后状态变为待同意，需要频繁刷新）
+      startAutoRefresh()
     } else {
       ElNotification({
         type: 'error',
-        message: res.message || '更新状态失败',
+        message: res.message || '申请接单失败',
         duration: 2000,
       })
     }
-  } catch (error) {
+  } catch (error: any) {
     ElNotification({
       type: 'error',
-      message: '更新状态失败',
+      message: error.response?.data?.message || '申请接单失败',
       duration: 2000,
     })
+  }
+}
+
+// 同意接单
+const handleAcceptOrder = async (orderId: number) => {
+  try {
+    await ElMessageBox.confirm('确定同意该用户的接单申请吗？', '确认同意', {
+      confirmButtonText: '确定',
+      cancelButtonText: '取消',
+      type: 'info',
+    })
+
+    const res = await acceptOrder(orderId)
+    if (res.code === 0) {
+      ElNotification({
+        type: 'success',
+        message: res.message || '已同意接单',
+        duration: 2000,
+      })
+      // 重新获取帖子详情
+      await getPostDetail()
+      // 重新启动定时刷新，根据新的接单状态调整刷新间隔
+      startAutoRefresh()
+    } else {
+      ElNotification({
+        type: 'error',
+        message: res.message || '同意接单失败',
+        duration: 2000,
+      })
+    }
+  } catch (error: any) {
+    if (error !== 'cancel') {
+      ElNotification({
+        type: 'error',
+        message: error.response?.data?.message || '同意接单失败',
+        duration: 2000,
+      })
+    }
+  }
+}
+
+// 拒绝接单
+const handleRejectOrder = async (orderId: number) => {
+  if (!orderId) {
+    ElNotification({
+      type: 'error',
+      message: '接单ID无效',
+      duration: 2000,
+    })
+    return
+  }
+
+  try {
+    await ElMessageBox.confirm('确定拒绝该用户的接单申请吗？', '确认拒绝', {
+      confirmButtonText: '确定',
+      cancelButtonText: '取消',
+      type: 'warning',
+    })
+
+    console.log('拒绝接单，orderId:', orderId)
+    const res = await rejectOrder(orderId)
+    console.log('拒绝接单响应:', res)
+    
+    if (res.code === 0) {
+      ElNotification({
+        type: 'success',
+        message: res.message || '已拒绝接单申请',
+        duration: 2000,
+      })
+      // 重新获取帖子详情
+      await getPostDetail()
+      // 重新启动定时刷新，根据新的接单状态调整刷新间隔
+      startAutoRefresh()
+    } else {
+      ElNotification({
+        type: 'error',
+        message: res.message || '拒绝接单失败',
+        duration: 2000,
+      })
+    }
+  } catch (error: any) {
+    if (error !== 'cancel') {
+      console.error('拒绝接单错误:', error)
+      ElNotification({
+        type: 'error',
+        message: error.response?.data?.message || error.message || '拒绝接单失败',
+        duration: 2000,
+      })
+    }
+  }
+}
+
+// 标记为已完成
+const handleCompleteOrder = async (orderId: number) => {
+  try {
+    await ElMessageBox.confirm('确定标记该接单为已完成吗？', '确认完成', {
+      confirmButtonText: '确定',
+      cancelButtonText: '取消',
+      type: 'info',
+    })
+
+    const res = await completeOrder(orderId)
+    if (res.code === 0) {
+      ElNotification({
+        type: 'success',
+        message: res.message || '已标记为已完成',
+        duration: 2000,
+      })
+      // 重新获取帖子详情
+      await getPostDetail()
+      // 重新启动定时刷新，根据新的接单状态调整刷新间隔
+      startAutoRefresh()
+    } else {
+      ElNotification({
+        type: 'error',
+        message: res.message || '标记失败',
+        duration: 2000,
+      })
+    }
+  } catch (error: any) {
+    if (error !== 'cancel') {
+      ElNotification({
+        type: 'error',
+        message: error.response?.data?.message || '标记失败',
+        duration: 2000,
+      })
+    }
   }
 }
 
@@ -420,6 +603,10 @@ watch(() => route.params.id, (newId, oldId) => {
   if (newId !== oldId && newId !== undefined && newId !== null && route.path.startsWith('/forum/') && route.path !== '/forum') {
     // 重置状态
     post.value = null
+    postDetailWithOrders.value = null
+    orderApplications.value = []
+    hasApplied.value = false
+    myOrder.value = null
     replies.value = []
     currentPage.value = 1
     replyContent.value = ''
@@ -431,24 +618,83 @@ watch(() => route.params.id, (newId, oldId) => {
 
 // 定时刷新间隔（30秒）
 const REFRESH_INTERVAL = 30000
+// 接单状态检测刷新间隔（5秒）- 当有待同意的接单时使用
+const ORDER_STATUS_REFRESH_INTERVAL = 5000
 // 定时器引用
 let refreshTimer: number | null = null
+// 当前使用的刷新间隔（用于跟踪）
+let currentRefreshInterval: number | null = null
 
-// 启动定时刷新（用于检测审核通过的回复）
+// 检查是否有待同意的接单
+const hasPendingOrder = () => {
+  // 如果当前用户已申请接单，且状态为待同意（0），需要频繁刷新
+  const hasPending = hasApplied.value && myOrder.value && myOrder.value.status === 0
+  console.log('检查待同意接单状态:', {
+    hasApplied: hasApplied.value,
+    myOrder: myOrder.value,
+    status: myOrder.value?.status,
+    hasPending
+  })
+  return hasPending
+}
+
+// 启动定时刷新（用于检测审核通过的回复和接单状态变化）
 const startAutoRefresh = () => {
   // 清除已存在的定时器
   if (refreshTimer) {
     clearInterval(refreshTimer)
+    refreshTimer = null
   }
-  // 每30秒自动刷新一次，以检测新审核通过的回复
-  refreshTimer = window.setInterval(() => {
+  
+  // 刷新函数
+  const doRefresh = async () => {
     // 只在页面可见时刷新
     if (document.visibilityState === 'visible') {
-      getReplies()
-      // 同时刷新帖子详情，以更新回复数等统计信息
-      getPostDetail()
+      try {
+        console.log('开始自动刷新...')
+        // 同时刷新回复和帖子详情
+        await Promise.all([getReplies(), getPostDetail()])
+        console.log('自动刷新完成')
+        
+        // 刷新后重新检查状态，决定是否需要调整刷新间隔
+        const shouldUseShortInterval = hasPendingOrder()
+        const expectedInterval = shouldUseShortInterval ? ORDER_STATUS_REFRESH_INTERVAL : REFRESH_INTERVAL
+        
+        console.log('刷新后检查状态:', {
+          currentInterval: currentRefreshInterval,
+          expectedInterval,
+          shouldUseShortInterval,
+          hasApplied: hasApplied.value,
+          myOrderStatus: myOrder.value?.status,
+          needRestart: currentRefreshInterval !== null && currentRefreshInterval !== expectedInterval
+        })
+        
+        // 如果状态变化导致需要改变刷新间隔，重新启动定时器
+        if (currentRefreshInterval !== null && currentRefreshInterval !== expectedInterval) {
+          console.log('接单状态变化，重新启动定时器，新间隔:', expectedInterval, 'ms')
+          // 间隔需要改变，重新启动定时器
+          startAutoRefresh()
+          return
+        }
+      } catch (error) {
+        console.error('自动刷新失败:', error)
+      }
+    } else {
+      console.log('页面不可见，跳过刷新')
     }
-  }, REFRESH_INTERVAL)
+  }
+  
+  // 根据是否有待同意的接单，选择不同的刷新间隔
+  const interval = hasPendingOrder() ? ORDER_STATUS_REFRESH_INTERVAL : REFRESH_INTERVAL
+  currentRefreshInterval = interval
+  
+  console.log('启动自动刷新，间隔:', interval, 'ms', hasPendingOrder() ? '(待同意接单，快速刷新)' : '(正常刷新)')
+  
+  // 立即执行一次刷新
+  doRefresh()
+  
+  // 设置定时刷新
+  refreshTimer = window.setInterval(doRefresh, interval)
 }
 
 // 停止定时刷新
@@ -457,15 +703,18 @@ const stopAutoRefresh = () => {
     clearInterval(refreshTimer)
   }
   refreshTimer = null
+  currentRefreshInterval = null
 }
 
 // 监听页面可见性变化
 const handleVisibilityChange = () => {
   if (document.visibilityState === 'visible') {
+    console.log('页面变为可见，启动刷新')
     // 页面变为可见时，立即刷新一次，然后启动定时刷新
     loadData()
     startAutoRefresh()
   } else {
+    console.log('页面不可见，停止刷新')
     // 页面不可见时，停止定时刷新以节省资源
     stopAutoRefresh()
   }
@@ -557,7 +806,7 @@ onBeforeUnmount(() => {
 
           <!-- 需求信息（仅需求类型显示） -->
           <div v-if="post.type === 1" class="mb-6 p-4 bg-muted/50 rounded-lg space-y-3">
-            <!-- 接单状态（仅需求发布者可见并可操作） -->
+            <!-- 接单状态（仅需求发布者可见） -->
             <div v-if="isOwnContent(post.userId)" class="flex items-center justify-between pb-3 border-b border-border">
               <div class="flex items-center gap-2">
                 <span class="text-sm font-medium text-muted-foreground">接单状态：</span>
@@ -568,24 +817,114 @@ onBeforeUnmount(() => {
                   {{ post.isAccepted === 1 ? '已接单' : '未接单' }}
                 </span>
               </div>
+            </div>
+            <!-- 接单状态和接单按钮（其他用户可见） -->
+            <div v-else class="flex items-center justify-between pb-3 border-b border-border">
+              <div class="flex items-center gap-2">
+                <span class="text-sm font-medium text-muted-foreground">接单状态：</span>
+                <span 
+                  class="text-sm font-medium px-3 py-1 rounded-full"
+                  :class="post.isAccepted === 1 ? 'bg-green-500/10 text-green-600 dark:text-green-400' : 'bg-orange-500/10 text-orange-600 dark:text-orange-400'"
+                >
+                  {{ post.isAccepted === 1 ? '已接单' : '未接单' }}
+                </span>
+              </div>
+              <!-- 接单按钮（未接单且未申请时显示，或者已拒绝时可以重新申请） -->
               <button
-                @click="handleUpdateAcceptStatus"
+                v-if="!post.isAccepted && (!hasApplied || (myOrder && myOrder.status === 3)) && userStore.userInfo?.token"
+                @click="handleApplyOrder"
                 class="inline-flex items-center justify-center rounded-lg text-sm font-medium transition-colors bg-primary text-primary-foreground hover:bg-primary/90 h-8 px-4"
               >
-                <icon-mdi:check-circle v-if="post.isAccepted === 1" class="w-4 h-4 mr-1" />
-                <icon-mdi:circle-outline v-else class="w-4 h-4 mr-1" />
-                {{ post.isAccepted === 1 ? '标记为未接单' : '标记为已接单' }}
+                <icon-mdi:hand-extended class="w-4 h-4 mr-1" />
+                {{ myOrder && myOrder.status === 3 ? '重新申请接单' : '申请接单' }}
               </button>
-            </div>
-            <!-- 接单状态（其他用户仅可见） -->
-            <div v-else class="flex items-center gap-2 pb-3 border-b border-border">
-              <span class="text-sm font-medium text-muted-foreground">接单状态：</span>
-              <span 
-                class="text-sm font-medium px-3 py-1 rounded-full"
-                :class="post.isAccepted === 1 ? 'bg-green-500/10 text-green-600 dark:text-green-400' : 'bg-orange-500/10 text-orange-600 dark:text-orange-400'"
-              >
-                {{ post.isAccepted === 1 ? '已接单' : '未接单' }}
+              <!-- 接单状态提示（已申请且未拒绝时显示） -->
+              <div v-else-if="hasApplied && myOrder && myOrder.status !== 3" class="flex items-center gap-2">
+                <span 
+                  class="text-sm font-medium px-3 py-1 rounded-full"
+                  :class="{
+                    'bg-yellow-500/10 text-yellow-600 dark:text-yellow-400': myOrder.status === 0,
+                    'bg-blue-500/10 text-blue-600 dark:text-blue-400': myOrder.status === 1,
+                    'bg-green-500/10 text-green-600 dark:text-green-400': myOrder.status === 2
+                  }"
+                >
+                  {{ myOrder.statusText || (myOrder.status === 0 ? '待同意' : myOrder.status === 1 ? '已接单未完成' : myOrder.status === 2 ? '已完成' : '未知') }}
+                </span>
+              </div>
+              <!-- 已拒绝状态提示 -->
+              <div v-else-if="myOrder && myOrder.status === 3" class="flex items-center gap-2">
+                <span 
+                  class="text-sm font-medium px-3 py-1 rounded-full bg-red-500/10 text-red-600 dark:text-red-400"
+                >
+                  {{ myOrder.statusText || '已拒绝' }}
+                </span>
+              </div>
+              <!-- 已申请但无详细信息时显示 -->
+              <span v-else-if="hasApplied" class="text-sm text-muted-foreground">
+                已申请接单，等待同意
               </span>
+            </div>
+            
+            <!-- 接单申请列表（仅需求发布者可见） -->
+            <div v-if="isOwnContent(post.userId) && orderApplications.length > 0" class="pt-3 space-y-2">
+              <div class="text-sm font-medium text-muted-foreground mb-2">接单申请列表：</div>
+              <div v-for="order in orderApplications" :key="order.id" class="p-3 bg-background rounded-lg border border-border">
+                <div class="flex items-center justify-between">
+                  <div class="flex items-center gap-3">
+                    <img 
+                      :src="order.accepterAvatar || userAvatar" 
+                      :alt="order.accepterName"
+                      class="w-10 h-10 rounded-full object-cover"
+                    />
+                    <div>
+                      <div class="text-sm font-medium text-foreground">{{ order.accepterName }}</div>
+                      <div class="text-xs text-muted-foreground">
+                        {{ formatTime(order.createTime) }}
+                      </div>
+                    </div>
+                    <span 
+                      class="text-xs font-medium px-2 py-1 rounded-full"
+                      :class="{
+                        'bg-yellow-500/10 text-yellow-600 dark:text-yellow-400': order.status === 0,
+                        'bg-blue-500/10 text-blue-600 dark:text-blue-400': order.status === 1,
+                        'bg-green-500/10 text-green-600 dark:text-green-400': order.status === 2,
+                        'bg-red-500/10 text-red-600 dark:text-red-400': order.status === 3
+                      }"
+                    >
+                      {{ order.statusText || (order.status === 0 ? '待同意' : order.status === 1 ? '已接单未完成' : order.status === 2 ? '已完成' : order.status === 3 ? '已拒绝' : '未知') }}
+                    </span>
+                  </div>
+                  <div class="flex items-center gap-2">
+                    <!-- 同意接单按钮（状态为待同意时显示） -->
+                    <button
+                      v-if="order.status === 0"
+                      @click.stop="handleAcceptOrder(order.id)"
+                      class="inline-flex items-center justify-center rounded-lg text-sm font-medium transition-colors bg-green-500 text-white hover:bg-green-600 h-8 px-3"
+                    >
+                      <icon-mdi:check class="w-4 h-4 mr-1" />
+                      同意
+                    </button>
+                    <!-- 拒绝接单按钮（状态为待同意时显示） -->
+                    <button
+                      v-if="order.status === 0"
+                      @click.stop="handleRejectOrder(order.id)"
+                      class="inline-flex items-center justify-center rounded-lg text-sm font-medium transition-colors bg-red-500 text-white hover:bg-red-600 h-8 px-3"
+                    >
+                      <icon-mdi:close class="w-4 h-4 mr-1" />
+                      拒绝
+                    </button>
+                    <!-- 标记为已完成按钮（状态为已接单未完成时显示） -->
+                    <button
+                      v-if="order.status === 1"
+                      @click.stop="handleCompleteOrder(order.id)"
+                      class="inline-flex items-center justify-center rounded-lg text-sm font-medium transition-colors bg-primary text-primary-foreground hover:bg-primary/90 h-8 px-3"
+                    >
+                      <icon-mdi:check-circle class="w-4 h-4 mr-1" />
+                      标记为已完成
+                    </button>
+                  </div>
+                </div>
+              </div>
             </div>
             <div v-if="post.requirementType" class="flex items-center gap-2">
               <span class="text-sm font-medium text-muted-foreground">需求类型：</span>

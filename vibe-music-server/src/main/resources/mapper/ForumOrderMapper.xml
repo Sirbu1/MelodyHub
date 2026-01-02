@@ -1,0 +1,136 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="cn.edu.seig.vibemusic.mapper.ForumOrderMapper">
+
+    <!-- 接单VO映射 -->
+    <resultMap id="ForumOrderVOMap" type="cn.edu.seig.vibemusic.model.vo.ForumOrderVO">
+        <id column="id" property="id"/>
+        <result column="post_id" property="postId"/>
+        <result column="post_title" property="postTitle"/>
+        <result column="poster_id" property="posterId"/>
+        <result column="poster_name" property="posterName"/>
+        <result column="poster_avatar" property="posterAvatar"/>
+        <result column="accepter_id" property="accepterId"/>
+        <result column="accepter_name" property="accepterName"/>
+        <result column="accepter_avatar" property="accepterAvatar"/>
+        <result column="status" property="status"/>
+        <result column="create_time" property="createTime"/>
+        <result column="update_time" property="updateTime"/>
+    </resultMap>
+
+    <!-- 分页查询需求发布者的接单申请列表 -->
+    <select id="selectOrderApplicationsByPoster" resultMap="ForumOrderVOMap">
+        SELECT
+            o.id,
+            o.post_id,
+            p.title AS post_title,
+            o.poster_id,
+            poster.username AS poster_name,
+            poster.user_avatar AS poster_avatar,
+            o.accepter_id,
+            accepter.username AS accepter_name,
+            accepter.user_avatar AS accepter_avatar,
+            o.status,
+            o.create_time,
+            o.update_time
+        FROM tb_forum_order o
+        LEFT JOIN tb_forum_post p ON o.post_id = p.id
+        LEFT JOIN tb_user poster ON o.poster_id = poster.id
+        LEFT JOIN tb_user accepter ON o.accepter_id = accepter.id
+        WHERE o.poster_id = #{posterId}
+        <if test="postId != null">
+            AND o.post_id = #{postId}
+        </if>
+        <if test="status != null">
+            AND o.status = #{status}
+        </if>
+        ORDER BY o.create_time DESC
+    </select>
+
+    <!-- 分页查询接单者的接单列表 -->
+    <select id="selectOrdersByAccepter" resultMap="ForumOrderVOMap">
+        SELECT
+            o.id,
+            o.post_id,
+            COALESCE(p.title, '帖子已删除') AS post_title,
+            o.poster_id,
+            COALESCE(poster.username, '用户已删除') AS poster_name,
+            poster.user_avatar AS poster_avatar,
+            o.accepter_id,
+            COALESCE(accepter.username, '用户已删除') AS accepter_name,
+            accepter.user_avatar AS accepter_avatar,
+            o.status,
+            o.create_time,
+            o.update_time
+        FROM tb_forum_order o
+        LEFT JOIN tb_forum_post p ON o.post_id = p.id
+        LEFT JOIN tb_user poster ON o.poster_id = poster.id
+        LEFT JOIN tb_user accepter ON o.accepter_id = accepter.id
+        WHERE o.accepter_id = #{accepterId}
+        <if test="status != null">
+            AND o.status = #{status}
+        </if>
+        ORDER BY o.create_time DESC
+    </select>
+
+    <!-- 查询接单详情 -->
+    <select id="selectOrderDetail" resultMap="ForumOrderVOMap">
+        SELECT
+            o.id,
+            o.post_id,
+            p.title AS post_title,
+            o.poster_id,
+            poster.username AS poster_name,
+            poster.user_avatar AS poster_avatar,
+            o.accepter_id,
+            accepter.username AS accepter_name,
+            accepter.user_avatar AS accepter_avatar,
+            o.status,
+            o.create_time,
+            o.update_time
+        FROM tb_forum_order o
+        LEFT JOIN tb_forum_post p ON o.post_id = p.id
+        LEFT JOIN tb_user poster ON o.poster_id = poster.id
+        LEFT JOIN tb_user accepter ON o.accepter_id = accepter.id
+        WHERE o.id = #{orderId}
+    </select>
+
+    <!-- 检查用户是否已申请接单 -->
+    <select id="countByPostIdAndAccepterId" resultType="int">
+        SELECT COUNT(*)
+        FROM tb_forum_order
+        WHERE post_id = #{postId} AND accepter_id = #{accepterId}
+    </select>
+
+    <!-- 检查帖子是否已有接单者（状态为1或2） -->
+    <select id="countAcceptedOrders" resultType="int">
+        SELECT COUNT(*)
+        FROM tb_forum_order
+        WHERE post_id = #{postId} AND status IN (1, 2)
+    </select>
+
+    <!-- 查询接单者在指定帖子中的接单信息 -->
+    <select id="selectOrderByPostIdAndAccepterId" resultMap="ForumOrderVOMap">
+        SELECT
+            o.id,
+            o.post_id,
+            p.title AS post_title,
+            o.poster_id,
+            poster.username AS poster_name,
+            poster.user_avatar AS poster_avatar,
+            o.accepter_id,
+            accepter.username AS accepter_name,
+            accepter.user_avatar AS accepter_avatar,
+            o.status,
+            o.create_time,
+            o.update_time
+        FROM tb_forum_order o
+        LEFT JOIN tb_forum_post p ON o.post_id = p.id
+        LEFT JOIN tb_user poster ON o.poster_id = poster.id
+        LEFT JOIN tb_user accepter ON o.accepter_id = accepter.id
+        WHERE o.post_id = #{postId} AND o.accepter_id = #{accepterId}
+        LIMIT 1
+    </select>
+
+</mapper>
+

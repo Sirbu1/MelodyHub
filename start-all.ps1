@@ -46,6 +46,80 @@ function Clean-BackendProcesses {
     }
 }
 
+# Function to wait for backend to start successfully
+function Wait-BackendReady {
+    param(
+        [int]$Port = 8080,
+        [int]$MaxWaitSeconds = 45
+    )
+    
+    Write-Host "  Waiting for backend to start (max ${MaxWaitSeconds}s)..." -ForegroundColor Cyan
+    
+    $startTime = Get-Date
+    $checkInterval = 3
+    $attempt = 0
+    $maxAttempts = [math]::Ceiling($MaxWaitSeconds / $checkInterval)
+    
+    # Save current error action preference
+    $oldErrorAction = $ErrorActionPreference
+    $ErrorActionPreference = "SilentlyContinue"
+    
+    try {
+        while ($attempt -lt $maxAttempts) {
+            $attempt++
+            $elapsed = ((Get-Date) - $startTime).TotalSeconds
+            
+            # Check if port is listening (use Get-NetTCPConnection for more reliable checking)
+            $portListening = $false
+            try {
+                $tcpConn = Get-NetTCPConnection -LocalPort $Port -State Listen -ErrorAction SilentlyContinue
+                if ($tcpConn) {
+                    $portListening = $true
+                }
+            } catch {
+                # Ignore connection errors
+            }
+            
+            if ($portListening) {
+                # Port is listening, backend should be ready
+                # Give it a moment to fully initialize
+                Start-Sleep -Seconds 1
+                Write-Host "  [OK] Backend is ready! (took ${([math]::Round($elapsed, 1))}s)" -ForegroundColor Green
+                return $true
+            }
+            
+            if ($attempt % 3 -eq 0) {
+                Write-Host "  Waiting for backend... (${([math]::Round($elapsed, 1))}s/${MaxWaitSeconds}s)" -ForegroundColor Gray
+            }
+            
+            Start-Sleep -Seconds $checkInterval
+        }
+        
+        # Final check
+        $portListening = $false
+        try {
+            $tcpConn = Get-NetTCPConnection -LocalPort $Port -State Listen -ErrorAction SilentlyContinue
+            if ($tcpConn) {
+                $portListening = $true
+            }
+        } catch {
+            # Ignore
+        }
+        
+        if ($portListening) {
+            Write-Host "  [OK] Backend port $Port is listening (service may still be initializing)" -ForegroundColor Green
+            return $true
+        }
+        
+        Write-Host "  [!] Backend did not start within ${MaxWaitSeconds}s timeout" -ForegroundColor Yellow
+        Write-Host "  [INFO] Backend may still be starting, check the backend window for startup logs" -ForegroundColor Cyan
+        return $false
+    } finally {
+        # Restore error action preference
+        $ErrorActionPreference = $oldErrorAction
+    }
+}
+
 # ============================================
 # 1. Start MySQL
 # ============================================
@@ -131,8 +205,8 @@ try {
     while ($attempt -lt $maxAttempts -and -not $redisReady) {
         $attempt++
         try {
-            $connection = Test-NetConnection -ComputerName localhost -Port 6379 -WarningAction SilentlyContinue -InformationLevel Quiet -ErrorAction SilentlyContinue
-            if ($connection) {
+            $tcpConn = Get-NetTCPConnection -LocalPort 6379 -State Listen -ErrorAction SilentlyContinue
+            if ($tcpConn) {
                 $redisReady = $true
                 Write-Host "  [OK] Redis is ready!" -ForegroundColor Green
             } else {
@@ -182,8 +256,8 @@ try {
         while ($attempt -lt $maxAttempts -and -not $minioReady) {
             $attempt++
             try {
-                $connection = Test-NetConnection -ComputerName 127.0.0.1 -Port 9000 -WarningAction SilentlyContinue -InformationLevel Quiet -ErrorAction SilentlyContinue
-                if ($connection) {
+                $tcpConn = Get-NetTCPConnection -LocalPort 9000 -State Listen -ErrorAction SilentlyContinue
+                if ($tcpConn) {
                     # Give MinIO a bit more time to fully initialize after port opens
                     Start-Sleep -Seconds 2
                     $minioReady = $true
@@ -234,8 +308,8 @@ function Free-Port {
         Write-Host "  Checking port $Port (attempt $retryCount/$MaxRetries)..." -ForegroundColor Cyan
         
         try {
-            $connection = Test-NetConnection -ComputerName localhost -Port $Port -WarningAction SilentlyContinue -InformationLevel Quiet -ErrorAction SilentlyContinue
-            if (-not $connection) {
+            $tcpConn = Get-NetTCPConnection -LocalPort $Port -State Listen -ErrorAction SilentlyContinue
+            if (-not $tcpConn) {
                 Write-Host "  [OK] Port $Port is available" -ForegroundColor Green
                 return $true
             }
@@ -286,8 +360,8 @@ function Free-Port {
                 
                 # Wait a bit and verify port is free
                 Start-Sleep -Seconds 2
-                $connectionAfter = Test-NetConnection -ComputerName localhost -Port $Port -WarningAction SilentlyContinue -InformationLevel Quiet -ErrorAction SilentlyContinue
-                if (-not $connectionAfter) {
+                $tcpConnAfter = Get-NetTCPConnection -LocalPort $Port -State Listen -ErrorAction SilentlyContinue
+                if (-not $tcpConnAfter) {
                     Write-Host "  [OK] Port $Port is now free" -ForegroundColor Green
                     return $true
                 } else {
@@ -331,9 +405,14 @@ if ($LASTEXITCODE -eq 0) {
     Write-Host "  [OK] Backend build success" -ForegroundColor Green
     Write-Host "  Starting backend server in new window..." -ForegroundColor Cyan
     Start-Process powershell -ArgumentList "-NoExit","-Command","cd `"$ServerDir`"; java -jar target/vibe-music-server-0.0.1-SNAPSHOT.jar"
-    Write-Host "  [OK] Backend server started" -ForegroundColor Green
-    Write-Host "  [INFO] Backend is starting, please wait 20-30 seconds for initialization" -ForegroundColor Cyan
-    Write-Host "  [INFO] Check the backend window for startup logs" -ForegroundColor Cyan
+    Write-Host "  [OK] Backend server process started" -ForegroundColor Green
+    
+    # Wait for backend to be ready (only check port, no HTTP request to avoid errors)
+    $backendReady = Wait-BackendReady -Port $backendPort -MaxWaitSeconds 45
+    
+    if (-not $backendReady) {
+        Write-Host "  [INFO] Backend may still be initializing, check the backend window for startup logs" -ForegroundColor Cyan
+    }
 } else {
     Write-Host "  [!] Backend build failed!" -ForegroundColor Red
     Set-Location $ProjectRoot

@@ -2,11 +2,14 @@ package cn.edu.seig.vibemusic.service.impl;
 
 import cn.edu.seig.vibemusic.constant.JwtClaimsConstant;
 import cn.edu.seig.vibemusic.constant.MessageConstant;
+import cn.edu.seig.vibemusic.mapper.ForumOrderMapper;
 import cn.edu.seig.vibemusic.mapper.ForumPostMapper;
 import cn.edu.seig.vibemusic.model.dto.ForumPostAddDTO;
 import cn.edu.seig.vibemusic.model.dto.ForumPostDTO;
 import cn.edu.seig.vibemusic.model.entity.ForumPost;
+import cn.edu.seig.vibemusic.model.vo.ForumOrderVO;
 import cn.edu.seig.vibemusic.model.vo.ForumPostDetailVO;
+import cn.edu.seig.vibemusic.model.vo.ForumPostDetailWithOrdersVO;
 import cn.edu.seig.vibemusic.model.vo.ForumPostVO;
 import cn.edu.seig.vibemusic.result.PageResult;
 import cn.edu.seig.vibemusic.result.Result;
@@ -23,6 +26,7 @@ import org.springframework.stereotype.Service;
 import org.springframework.web.multipart.MultipartFile;
 
 import java.time.LocalDateTime;
+import java.util.List;
 import java.util.Map;
 import java.util.Objects;
 
@@ -40,6 +44,9 @@ public class ForumPostServiceImpl extends ServiceImpl<ForumPostMapper, ForumPost
 
     @Autowired
     private ForumPostMapper forumPostMapper;
+
+    @Autowired
+    private ForumOrderMapper forumOrderMapper;
 
     @Autowired
     private MinioService minioService;
@@ -115,7 +122,46 @@ public class ForumPostServiceImpl extends ServiceImpl<ForumPostMapper, ForumPost
             postDetail.setViewCount(postDetail.getViewCount() + 1);
         }
 
-        return Result.success(postDetail);
+        // 如果是需求类型的帖子，查询接单申请信息
+        ForumPostDetailWithOrdersVO result = new ForumPostDetailWithOrdersVO();
+        result.setPostDetail(postDetail);
+
+        if (postDetail.getType() != null && postDetail.getType() == 1) {
+            // 如果是需求发布者，返回接单申请列表（只返回当前帖子的申请）
+            if (currentUserId != null && Objects.equals(postDetail.getUserId(), currentUserId)) {
+                Page<ForumOrderVO> page = new Page<>(1, 100); // 获取所有接单申请
+                List<ForumOrderVO> orderApplications = forumOrderMapper.selectOrderApplicationsByPoster(
+                    page, postDetail.getUserId(), postId, null).getRecords();
+                // 设置状态文本
+                orderApplications.forEach(order -> {
+                    order.setStatusText(getOrderStatusText(order.getStatus()));
+                });
+                result.setOrderApplications(orderApplications);
+            } else {
+                result.setOrderApplications(java.util.Collections.emptyList());
+            }
+
+            // 检查当前用户是否已申请接单，并获取接单信息
+            if (currentUserId != null && !Objects.equals(postDetail.getUserId(), currentUserId)) {
+                ForumOrderVO myOrder = forumOrderMapper.selectOrderByPostIdAndAccepterId(postId, currentUserId);
+                if (myOrder != null) {
+                    result.setHasApplied(true);
+                    myOrder.setStatusText(getOrderStatusText(myOrder.getStatus()));
+                    result.setMyOrder(myOrder);
+                } else {
+                    result.setHasApplied(false);
+                    result.setMyOrder(null);
+                }
+            } else {
+                result.setHasApplied(false);
+                result.setMyOrder(null);
+            }
+        } else {
+            result.setOrderApplications(java.util.Collections.emptyList());
+            result.setHasApplied(false);
+        }
+
+        return Result.success(result);
     }
 
     /**
@@ -404,6 +450,27 @@ public class ForumPostServiceImpl extends ServiceImpl<ForumPostMapper, ForumPost
         } catch (Exception e) {
             log.error("更新帖子失败", e);
             return Result.error("更新失败：" + e.getMessage());
+        }
+    }
+
+    /**
+     * 获取接单状态文本
+     */
+    private String getOrderStatusText(Integer status) {
+        if (status == null) {
+            return "未知";
+        }
+        switch (status) {
+            case 0:
+                return "待同意";
+            case 1:
+                return "已接单未完成";
+            case 2:
+                return "已完成";
+            case 3:
+                return "已拒绝";
+            default:
+                return "未知";
         }
     }
 
