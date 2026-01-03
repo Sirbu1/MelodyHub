@@ -192,6 +192,13 @@ public class ForumPostServiceImpl extends ServiceImpl<ForumPostMapper, ForumPost
             return Result.error("当前账号无发布权限，积分不足（积分为0时无法发帖、发歌、回复）");
         }
 
+        // 检查当日发布限制（最多10条）
+        Integer todayPosts = forumPostMapper.countUserTodayPosts(userId);
+        if (todayPosts >= 10) {
+            log.warn("用户当日发布帖子数量已达上限 - userId: {}, todayPosts: {}", userId, todayPosts);
+            return Result.error("今日发布次数已达上限（10条），请明天再试");
+        }
+
         ForumPost forumPost = new ForumPost();
         forumPost.setUserId(userId)
                 .setTitle(forumPostAddDTO.getTitle())

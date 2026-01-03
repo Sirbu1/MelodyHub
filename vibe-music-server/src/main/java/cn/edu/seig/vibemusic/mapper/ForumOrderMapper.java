@@ -78,5 +78,13 @@ public interface ForumOrderMapper extends BaseMapper<ForumOrder> {
      * @return 接单信息
      */
     ForumOrderVO selectOrderByPostIdAndAccepterId(@Param("postId") Long postId, @Param("accepterId") Long accepterId);
+
+    /**
+     * 统计用户已接单但未完成的接单数量（状态为1）
+     *
+     * @param accepterId 接单者ID
+     * @return 未完成的接单数量
+     */
+    int countIncompleteOrdersByAccepter(@Param("accepterId") Long accepterId);
 }
 

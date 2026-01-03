@@ -69,6 +69,14 @@ public class ForumOrderServiceImpl extends ServiceImpl<ForumOrderMapper, ForumOr
             return Result.error("不能接自己的需求单");
         }
 
+        // 检查用户已接单但未完成的需求数量
+        int incompleteOrderCount = forumOrderMapper.countIncompleteOrdersByAccepter(accepterId);
+        log.info("检查用户未完成接单数量 - accepterId: {}, incompleteCount: {}", accepterId, incompleteOrderCount);
+        if (incompleteOrderCount >= 5) {
+            log.warn("用户未完成的接单数量已达上限 - accepterId: {}, incompleteCount: {}, 拒绝接单申请", accepterId, incompleteOrderCount);
+            return Result.error("您当前有" + incompleteOrderCount + "个未完成的接单，最多只能同时接5个未完成的订单，请先完成部分订单后再申请");
+        }
+
         // 检查是否已经申请过接单（排除已拒绝的状态3）
         // 如果之前被拒绝，允许重新申请
         ForumOrderVO existingOrder = forumOrderMapper.selectOrderByPostIdAndAccepterId(postId, accepterId);

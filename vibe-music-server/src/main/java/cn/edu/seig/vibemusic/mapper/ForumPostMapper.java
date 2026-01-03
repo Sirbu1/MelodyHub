@@ -81,5 +81,13 @@ public interface ForumPostMapper extends BaseMapper<ForumPost> {
      */
     IPage<ForumPostVO> getUserPosts(Page<ForumPostVO> page, @Param("userId") Long userId, @Param("auditStatus") Integer auditStatus);
 
+    /**
+     * 统计用户当日发布帖子数量
+     *
+     * @param userId 用户ID
+     * @return 当日发布帖子数量
+     */
+    Integer countUserTodayPosts(@Param("userId") Long userId);
+
 }
 

@@ -132,5 +132,12 @@
         LIMIT 1
     </select>
 
+    <!-- 统计用户已接单但未完成的接单数量（状态为1） -->
+    <select id="countIncompleteOrdersByAccepter" resultType="int">
+        SELECT COUNT(*)
+        FROM tb_forum_order
+        WHERE accepter_id = #{accepterId} AND status = 1
+    </select>
+
 </mapper>
 

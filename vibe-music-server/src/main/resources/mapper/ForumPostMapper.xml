@@ -205,5 +205,14 @@
         ORDER BY p.create_time DESC
     </select>
 
+    <!-- 统计用户当日发布帖子数量 -->
+    <select id="countUserTodayPosts" resultType="int">
+        SELECT COUNT(*)
+        FROM tb_forum_post
+        WHERE user_id = #{userId}
+        AND status = 0
+        AND DATE(create_time) = CURDATE()
+    </select>
+
 </mapper>
 
