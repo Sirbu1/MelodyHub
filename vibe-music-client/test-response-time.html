@@ -1,0 +1,168 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>响应时间统计查看器</title>
+    <style>
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif;
+            max-width: 800px;
+            margin: 50px auto;
+            padding: 20px;
+            background: #f5f5f5;
+        }
+        .container {
+            background: white;
+            padding: 30px;
+            border-radius: 8px;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+        }
+        h1 {
+            color: #333;
+            border-bottom: 2px solid #4CAF50;
+            padding-bottom: 10px;
+        }
+        .stats {
+            margin: 20px 0;
+        }
+        .stat-item {
+            padding: 15px;
+            margin: 10px 0;
+            background: #f9f9f9;
+            border-left: 4px solid #4CAF50;
+            border-radius: 4px;
+        }
+        .stat-label {
+            font-weight: bold;
+            color: #666;
+            margin-bottom: 5px;
+        }
+        .stat-value {
+            font-size: 24px;
+            color: #333;
+        }
+        .no-data {
+            text-align: center;
+            padding: 40px;
+            color: #999;
+        }
+        button {
+            background: #4CAF50;
+            color: white;
+            border: none;
+            padding: 10px 20px;
+            border-radius: 4px;
+            cursor: pointer;
+            font-size: 16px;
+            margin: 10px 5px;
+        }
+        button:hover {
+            background: #45a049;
+        }
+        button.clear {
+            background: #f44336;
+        }
+        button.clear:hover {
+            background: #da190b;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>🎵 播放歌曲API响应时间统计</h1>
+        <div id="stats-container">
+            <div class="no-data">正在加载数据...</div>
+        </div>
+        <div style="text-align: center; margin-top: 20px;">
+            <button onclick="loadStats()">🔄 刷新数据</button>
+            <button class="clear" onclick="clearStats()">🗑️ 清除数据</button>
+        </div>
+    </div>
+
+    <script>
+        function formatDuration(ms) {
+            if (ms < 1000) {
+                return `${ms.toFixed(2)}ms`;
+            }
+            return `${(ms / 1000).toFixed(2)}s`;
+        }
+
+        function loadStats() {
+            try {
+                const storageKey = 'api_response_time_stats';
+                const data = localStorage.getItem(storageKey);
+                const container = document.getElementById('stats-container');
+
+                if (!data) {
+                    container.innerHTML = '<div class="no-data">📊 暂无数据<br>请先播放一些歌曲来收集响应时间数据</div>';
+                    return;
+                }
+
+                const parsed = JSON.parse(data);
+                let songStats = null;
+
+                // 查找播放歌曲API的统计数据
+                for (const [key, stats] of parsed) {
+                    if (stats.url && stats.url.includes('song/url/v1')) {
+                        songStats = stats;
+                        break;
+                    }
+                }
+
+                if (!songStats || songStats.count === 0) {
+                    container.innerHTML = '<div class="no-data">📊 暂无播放歌曲API的响应时间数据<br>请先播放一些歌曲来收集数据</div>';
+                    return;
+                }
+
+                let html = `
+                    <div class="stats">
+                        <div class="stat-item">
+                            <div class="stat-label">请求次数</div>
+                            <div class="stat-value">${songStats.count}</div>
+                        </div>
+                        <div class="stat-item">
+                            <div class="stat-label">平均响应时间</div>
+                            <div class="stat-value" style="color: #4CAF50;">${formatDuration(songStats.averageTime)}</div>
+                        </div>
+                        <div class="stat-item">
+                            <div class="stat-label">最短响应时间</div>
+                            <div class="stat-value" style="color: #2196F3;">${formatDuration(songStats.minTime)}</div>
+                        </div>
+                        <div class="stat-item">
+                            <div class="stat-label">最长响应时间</div>
+                            <div class="stat-value" style="color: #FF9800;">${formatDuration(songStats.maxTime)}</div>
+                        </div>
+                    </div>
+                `;
+
+                if (songStats.timings && songStats.timings.length > 0) {
+                    const recent = songStats.timings.slice(-10);
+                    html += '<div class="stat-item"><div class="stat-label">最近10次响应时间</div>';
+                    recent.forEach((time, index) => {
+                        html += `<div style="padding: 5px 0; border-bottom: 1px solid #eee;">${index + 1}. ${formatDuration(time)}</div>`;
+                    });
+                    html += '</div>';
+                }
+
+                container.innerHTML = html;
+            } catch (error) {
+                console.error('加载统计数据失败:', error);
+                document.getElementById('stats-container').innerHTML = 
+                    '<div class="no-data">❌ 加载数据时出错: ' + error.message + '</div>';
+            }
+        }
+
+        function clearStats() {
+            if (confirm('确定要清除所有响应时间统计数据吗？')) {
+                localStorage.removeItem('api_response_time_stats');
+                loadStats();
+                alert('数据已清除');
+            }
+        }
+
+        // 页面加载时自动加载数据
+        loadStats();
+    </script>
+</body>
+</html>

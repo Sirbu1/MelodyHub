@@ -4,6 +4,8 @@ import cn.edu.seig.vibemusic.constant.JwtClaimsConstant;
 import cn.edu.seig.vibemusic.constant.MessageConstant;
 import cn.edu.seig.vibemusic.mapper.ForumPostMapper;
 import cn.edu.seig.vibemusic.mapper.ForumReplyMapper;
+import cn.edu.seig.vibemusic.mapper.UserMapper;
+import cn.edu.seig.vibemusic.model.entity.User;
 import cn.edu.seig.vibemusic.model.dto.ForumReplyAddDTO;
 import cn.edu.seig.vibemusic.model.dto.ForumReplyDTO;
 import cn.edu.seig.vibemusic.model.entity.ForumPost;
@@ -44,6 +46,9 @@ public class ForumReplyServiceImpl extends ServiceImpl<ForumReplyMapper, ForumRe
 
     @Autowired
     private ForumPostMapper forumPostMapper;
+
+    @Autowired
+    private UserMapper userMapper;
 
     /**
      * 分页查询帖子的回复列表
@@ -96,6 +101,16 @@ public class ForumReplyServiceImpl extends ServiceImpl<ForumReplyMapper, ForumRe
         Map<String, Object> map = ThreadLocalUtil.get();
         Object userIdObj = map.get(JwtClaimsConstant.USER_ID);
         Long userId = TypeConversionUtil.toLong(userIdObj);
+
+        // 检查用户积分是否大于0
+        User user = userMapper.selectById(userId);
+        if (user == null) {
+            return Result.error("用户不存在");
+        }
+        int userScore = user.getScore() != null ? user.getScore() : 100;
+        if (userScore <= 0) {
+            return Result.error("当前账号无发布权限，积分不足（积分为0时无法发帖、发歌、回复）");
+        }
 
         ForumReply forumReply = new ForumReply();
         forumReply.setPostId(forumReplyAddDTO.getPostId())

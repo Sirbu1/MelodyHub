@@ -134,6 +134,12 @@ public class ForumPost implements Serializable {
     private Integer auditStatus;
 
     /**
+     * 审核未通过原因
+     */
+    @TableField("audit_reason")
+    private String auditReason;
+
+    /**
      * 创建时间
      */
     @JsonFormat(pattern = "yyyy-MM-dd HH:mm:ss")

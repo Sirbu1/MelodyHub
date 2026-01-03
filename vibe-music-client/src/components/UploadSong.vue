@@ -108,7 +108,7 @@
                 @change="handleAudioChange"
                 class="hidden"
               />
-              <div v-if="!audioInput?.files?.length" class="flex flex-col items-center gap-3">
+              <div v-if="!audioFile" class="flex flex-col items-center gap-3">
                 <icon-mdi:cloud-upload class="text-4xl text-muted-foreground" />
                 <p class="text-sm font-medium text-foreground">点击选择音频文件</p>
                 <p class="text-xs text-muted-foreground">支持 MP3、WAV 格式，最大 100MB</p>
@@ -117,8 +117,8 @@
                 <div class="flex items-center gap-4 flex-1 min-w-0">
                   <icon-mdi:file-music class="text-3xl text-primary flex-shrink-0" />
                   <div class="flex-1 min-w-0">
-                    <p class="text-sm font-medium text-foreground truncate">{{ audioInput.files[0].name }}</p>
-                    <p class="text-xs text-muted-foreground">{{ formatFileSize(audioInput.files[0].size) }}</p>
+                    <p class="text-sm font-medium text-foreground truncate">{{ audioFileName }}</p>
+                    <p class="text-xs text-muted-foreground">{{ formatFileSize(audioFileSize) }}</p>
                     <p v-if="audioDuration > 0" class="text-xs text-muted-foreground">
                       时长: {{ formatDuration(audioDuration) }}
                     </p>
@@ -268,6 +268,11 @@ const qrInput = ref(null)
 const coverPreview = ref('')
 const qrPreview = ref('')
 
+// 音频文件信息（用于响应式显示）
+const audioFile = ref(null)
+const audioFileName = ref('')
+const audioFileSize = ref(0)
+
 // 音频时长
 const audioDuration = ref(0)
 
@@ -311,6 +316,9 @@ const handleAudioChange = (event) => {
       if (audioInput.value) {
         audioInput.value.value = ''
       }
+      audioFile.value = null
+      audioFileName.value = ''
+      audioFileSize.value = 0
       audioDuration.value = 0
       return
     }
@@ -321,9 +329,17 @@ const handleAudioChange = (event) => {
       if (audioInput.value) {
         audioInput.value.value = ''
       }
+      audioFile.value = null
+      audioFileName.value = ''
+      audioFileSize.value = 0
       audioDuration.value = 0
       return
     }
+
+    // 更新响应式变量，立即显示文件信息
+    audioFile.value = file
+    audioFileName.value = file.name
+    audioFileSize.value = file.size
 
     // 获取音频时长
     const audio = new Audio()
@@ -348,6 +364,9 @@ const handleAudioChange = (event) => {
       URL.revokeObjectURL(objectUrl)
     })
   } else {
+    audioFile.value = null
+    audioFileName.value = ''
+    audioFileSize.value = 0
     audioDuration.value = 0
   }
 }
@@ -376,6 +395,9 @@ const removeAudio = () => {
   if (audioInput.value) {
     audioInput.value.value = ''
   }
+  audioFile.value = null
+  audioFileName.value = ''
+  audioFileSize.value = 0
   audioDuration.value = 0
 }
 
@@ -489,6 +511,13 @@ const handleSubmit = async () => {
     return
   }
 
+  // 检查用户积分
+  const userScore = userStore.userInfo?.score ?? 100
+  if (userScore <= 0) {
+    alert('当前账号无发布权限，积分不足（积分为0时无法发帖、发歌、回复）')
+    return
+  }
+
   try {
     isUploading.value = true
     uploadProgress.value = 0
@@ -504,6 +533,23 @@ const handleSubmit = async () => {
 
     clearInterval(progressInterval)
     uploadProgress.value = 100
+
+    // 检查响应状态码
+    if (response.code !== 0) {
+      // 如果返回错误，显示错误信息
+      let errorMessage = response.message || '上传失败，请重试'
+      
+      // 如果是个人信息不完整的错误，显示用户友好的提示
+      if (errorMessage.includes('个人信息') || errorMessage.includes('生日') || errorMessage.includes('国籍') || errorMessage.includes('简介')) {
+        errorMessage = '请填写个人完整信息后再上传'
+      }
+      
+      uploadResult.value = {
+        success: false,
+        message: errorMessage
+      }
+      return
+    }
 
     uploadResult.value = {
       success: true,
@@ -560,6 +606,9 @@ const resetForm = () => {
 
   coverPreview.value = ''
   qrPreview.value = ''
+  audioFile.value = null
+  audioFileName.value = ''
+  audioFileSize.value = 0
   audioDuration.value = 0
 }
 </script>

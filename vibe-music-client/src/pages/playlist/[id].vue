@@ -3,6 +3,7 @@ import { getPlaylistDetail, addPlaylistComment, likeComment, deleteComment } fro
 import { formatNumber } from '@/utils'
 import type { PlaylistDetail, Song } from '@/api/interface'
 import coverImg from '@/assets/cover.png'
+import userAvatar from '@/assets/user.jpg'
 import { usePlaylistStore } from '@/stores/modules/playlist'
 import { useFavoriteStore } from '@/stores/modules/favorite'
 import { ElMessage } from 'element-plus'
@@ -236,7 +237,8 @@ const handlePlayAll = async () => {
     <div class="flex flex-col md:flex-row p-6 gap-6">
       <div class="flex-shrink-0 w-60 h-60">
         <img :alt="playlist?.name" class="w-full h-full object-cover rounded-lg shadow-lg"
-          :src="(playlist?.coverImgUrl || coverImg) + '?param=500y500'" />
+          :src="(playlist?.coverImgUrl || coverImg) + '?param=500y500'"
+          @error="(e) => { (e.target as HTMLImageElement).src = coverImg }" />
       </div>
       <div class="flex flex-col justify-between">
         <div>
@@ -247,7 +249,7 @@ const handlePlayAll = async () => {
           <div class="flex items-center gap-2 text-sm text-muted-foreground mb-4">
             <span class="relative flex shrink-0 overflow-hidden rounded-full w-6 h-6">
               <img class="aspect-square h-full w-full" :alt="playlist?.creator.nickname"
-                :src="playlist?.creator.avatarUrl" /></span>
+                :src="playlist?.creator.avatarUrl || userAvatar" /></span>
             <span>{{ playlist?.creator.nickname }}</span>
             <span>•</span>
             <span>{{ playlist?.trackCount }} 首歌曲</span>

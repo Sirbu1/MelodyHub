@@ -4,6 +4,7 @@ import Table from '@/components/Table.vue'
 import { useArtistStore } from '@/stores/modules/artist'
 import { ElMessage } from 'element-plus'
 import { useRoute } from 'vue-router'
+import userAvatar from '@/assets/user.jpg'
 
 interface ArtistDetailResponse {
     artistId: number
@@ -68,7 +69,8 @@ const formatBirth = (birth: string) => {
         <!-- 歌手详情 -->
         <div class="flex flex-col lg:flex-row items-center gap-8">
             <div class="w-48 h-48 rounded-full overflow-hidden bg-gray-200">
-                <img :src="artistInfo?.avatar" :alt="artistInfo?.artistName" class="w-full h-full object-cover" />
+                <img :src="artistInfo?.avatar || userAvatar" :alt="artistInfo?.artistName" class="w-full h-full object-cover"
+                  @error="(e) => { (e.target as HTMLImageElement).src = userAvatar }" />
             </div>
             <div class="text-center lg:text-left flex-1">
                 <h1 class="text-3xl font-semibold text-foreground">

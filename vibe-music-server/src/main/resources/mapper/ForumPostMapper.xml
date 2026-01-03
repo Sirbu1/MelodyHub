@@ -22,6 +22,7 @@
         <result column="reference_attachment" property="referenceAttachment"/>
         <result column="is_accepted" property="isAccepted"/>
         <result column="audit_status" property="auditStatus"/>
+        <result column="audit_reason" property="auditReason"/>
         <result column="create_time" property="createTime"/>
         <result column="update_time" property="updateTime"/>
     </resultMap>
@@ -46,6 +47,7 @@
         <result column="reference_attachment" property="referenceAttachment"/>
         <result column="is_accepted" property="isAccepted"/>
         <result column="audit_status" property="auditStatus"/>
+        <result column="audit_reason" property="auditReason"/>
         <result column="create_time" property="createTime"/>
         <result column="update_time" property="updateTime"/>
     </resultMap>
@@ -105,6 +107,7 @@
             p.reference_attachment,
             p.is_accepted,
             p.audit_status,
+            p.audit_reason,
             p.create_time,
             p.update_time
         FROM tb_forum_post p
@@ -141,6 +144,7 @@
             p.reference_attachment,
             p.is_accepted,
             p.audit_status,
+            p.audit_reason,
             p.create_time,
             p.update_time
         FROM tb_forum_post p

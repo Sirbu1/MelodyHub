@@ -50,6 +50,11 @@ public class CommentVO implements Serializable {
     private Integer auditStatus;
 
     /**
+     * 审核未通过原因
+     */
+    private String auditReason;
+
+    /**
      * 评论类型：0-歌曲评论，1-歌单评论
      */
     private Integer type;

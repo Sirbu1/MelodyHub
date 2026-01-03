@@ -17,8 +17,6 @@ const bannerList = ref<{ bannerId: number; bannerUrl: string }[]>([])
 // const recommendedPlaylist = ref([])
 // 今日为你推荐 - 推荐歌曲
 const todayRecommendedSongs = ref([])
-// 相似推荐 - 推荐歌曲
-const similarRecommendedSongs = ref([])
 
 // 监听用户登录状态
 watch(
@@ -74,7 +72,6 @@ const getRecommendedData = async () => {
 
   // 获取推荐歌曲
   await handleRefreshTodaySongs()
-  await handleRefreshSimilarSongs()
 }
 
 onMounted(async () => {
@@ -120,42 +117,6 @@ const handleRefreshTodaySongs = async () => {
   }
 }
 
-// 刷新相似推荐
-const handleRefreshSimilarSongs = async () => {
-  try {
-    const result = await getRecommendedSongs()
-    if (result.code === 0 && Array.isArray(result.data)) {
-      const transformedSongs = transformSongData(result.data)
-      // 相似推荐：取第10首之后的歌曲，如果不足则重新获取一次
-      if (transformedSongs.length > 10) {
-        similarRecommendedSongs.value = transformedSongs.slice(10)
-      } else {
-        // 如果第一次获取的歌曲不足，再获取一次并排除已显示的歌曲
-        try {
-          const secondResult = await getRecommendedSongs()
-          if (secondResult.code === 0 && Array.isArray(secondResult.data)) {
-            const secondTransformedSongs = transformSongData(secondResult.data)
-            // 排除今日推荐中已显示的歌曲ID
-            const todaySongIds = new Set(todayRecommendedSongs.value.map(s => s.id))
-            similarRecommendedSongs.value = secondTransformedSongs.filter(s => !todaySongIds.has(s.id))
-          } else {
-            similarRecommendedSongs.value = []
-          }
-        } catch (error) {
-          console.error('获取相似推荐歌曲失败:', error)
-          similarRecommendedSongs.value = []
-        }
-      }
-    } else {
-      // 静默失败，不显示错误提示
-      similarRecommendedSongs.value = []
-    }
-  } catch (error) {
-    console.error('获取相似推荐歌曲失败:', error)
-    // 静默失败，不显示错误提示
-    similarRecommendedSongs.value = []
-  }
-}
 
 // 转换歌曲实体
 const convertToTrackModel = (song: any) => {
@@ -170,17 +131,14 @@ const convertToTrackModel = (song: any) => {
   }
 }
 
-const handlePlaylclick = async (row: any, source: 'today' | 'similar' = 'today') => {
-  // 根据来源选择对应的推荐列表
-  const sourceList = source === 'today' ? todayRecommendedSongs.value : similarRecommendedSongs.value
-  
+const handlePlaylclick = async (row: any) => {
   // 将所有推荐歌曲转换为 trackModel
-  const allTracks = sourceList
+  const allTracks = todayRecommendedSongs.value
     .map(song => convertToTrackModel(song))
     .filter(track => track !== null)
 
   // 找到当前选中歌曲的索引
-  const selectedIndex = sourceList.findIndex(song => song.id === row.id)
+  const selectedIndex = todayRecommendedSongs.value.findIndex(song => song.id === row.id)
 
   // 清空现有播放列表并添加所有歌曲
   audio.setAudioStore('trackList', allTracks)
@@ -197,6 +155,8 @@ const isCurrentPlaying = (songId: number) => {
   const currentTrack = audio.trackList[audio.currentSongIndex]
   return currentTrack && Number(currentTrack.id) === songId
 }
+
+// 处理封面图片加载失败 - 使用 error 插槽，避免反复触发错误事件
 </script>
 <template>
   <div class="flex gap-6 p-4 w-full">
@@ -225,13 +185,25 @@ const isCurrentPlaying = (songId: number) => {
                 class="grid grid-cols-[auto_2fr_1fr] items-center gap-4 transition duration-300 rounded-2xl w-full group"
                 :class="[
                   isCurrentPlaying(item.id) ? 'bg-hoverMenuBg' : 'hover:bg-hoverMenuBg'
-                ]" @click.stop="handlePlaylclick(item, 'today')">
+                ]" @click.stop="handlePlaylclick(item)">
                 <!-- 专辑封面 -->
                 <div class="w-16 h-16 rounded-2xl overflow-hidden relative">
-                  <el-image :alt="item.name" width="64" height="64" class="w-full h-full object-cover"
-                    :src="item.coverUrl ? (item.coverUrl + '?param=90y90') : coverImg" />
+                  <el-image 
+                    :alt="item.name" 
+                    width="64" 
+                    height="64" 
+                    class="w-full h-full object-cover"
+                    :src="item.coverUrl ? (item.coverUrl + '?param=90y90') : coverImg"
+                    fit="cover"
+                    :preview-src-list="[]">
+                    <template #error>
+                      <div class="w-full h-full flex items-center justify-center bg-gray-200">
+                        <img :src="coverImg" :alt="item.name" class="w-full h-full object-cover" />
+                      </div>
+                    </template>
+                  </el-image>
                   <!-- Play 按钮，使用 group-hover 控制透明度 -->
-                  <button @click.stop="handlePlaylclick(item, 'today')"
+                  <button @click.stop="handlePlaylclick(item)"
                     class="absolute inset-0 flex items-center justify-center text-white opacity-0 transition-opacity duration-300 z-10 group-hover:opacity-100 group-hover:bg-black/50">
                     <icon-tabler:player-play-filled class="text-lg" />
                   </button>
@@ -256,54 +228,6 @@ const isCurrentPlaying = (songId: number) => {
             </div>
           </el-scrollbar>
         </div>
-      </div>
-
-      <!-- 歌曲 -->
-      <div class="w-full">
-        <div class="flex justify-between items-center mb-4">
-          <h2 class="text-xl font-semibold mb-4">相似推荐</h2>
-          <button @click="handleRefreshSimilarSongs()"
-            class="inline-flex items-center justify-center gap-2 whitespace-nowrap rounded-md text-sm font-medium ring-offset-background transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:pointer-events-none disabled:opacity-50 [&amp;_svg]:pointer-events-none [&amp;_svg]:size-4 [&amp;_svg]:shrink-0 text-primary underline-offset-4 hover:underline h-10 px-4 py-2">
-            <icon-tabler:refresh class="text-lg" />
-            刷新
-          </button>
-        </div>
-        <el-scrollbar class="h-full" overflow-auto>
-          <div class="grid grid-cols-1 md:grid-cols-2 gap-4 gap-x-16">
-            <button v-for="item in similarRecommendedSongs" :key="item.id"
-              class="grid grid-cols-[auto_2fr_1fr] items-center gap-4 transition duration-300 rounded-2xl w-full group"
-              :class="[
-                isCurrentPlaying(item.id) ? 'bg-hoverMenuBg' : 'hover:bg-hoverMenuBg'
-              ]" @click.stop="handlePlaylclick(item, 'similar')">
-              <!-- 专辑封面 -->
-              <div class="w-16 h-16 rounded-2xl overflow-hidden relative">
-                <el-image :alt="item.name" width="64" height="64" class="w-full h-full object-cover"
-                  :src="item.coverUrl ? (item.coverUrl + '?param=90y90') : coverImg" />
-                <!-- Play 按钮，使用 group-hover 控制透明度 -->
-                <button @click.stop="handlePlaylclick(item, 'similar')"
-                  class="absolute inset-0 flex items-center justify-center text-white opacity-0 transition-opacity duration-300 z-10 group-hover:opacity-100 group-hover:bg-black/50">
-                  <icon-tabler:player-play-filled class="text-lg" />
-                </button>
-              </div>
-
-              <div class="truncate text-left ml-1">
-                <!-- 歌曲名称 -->
-                <h3 class="font-medium">{{ item.name }}</h3>
-                <!-- 艺术家 -->
-                <p class="text-sm text-muted-foreground line-clamp-1">
-                  {{item.artists.map((item) => item.name).join(' ')}}
-                </p>
-              </div>
-
-              <!-- 时长 -->
-              <div class="text-right mr-5">
-                <p class="text-sm text-muted-foreground line-clamp-1">
-                  {{ formatTime(item.duration) }}
-                </p>
-              </div>
-            </button>
-          </div>
-        </el-scrollbar>
       </div>
     </div>
   </div>

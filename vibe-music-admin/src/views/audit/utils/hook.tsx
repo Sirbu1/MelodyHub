@@ -273,21 +273,34 @@ export function useAudit(tableRef: Ref, activeTab: Ref<string>) {
       return;
     }
 
-    ElMessageBox.confirm(
-      `确认要${isBatch ? "批量" : ""}拒绝这${ids.length}项内容吗?`,
-      "系统提示",
+    // 使用 ElMessageBox.prompt 来输入拒绝原因
+    ElMessageBox.prompt(
+      isBatch ? `请输入拒绝这${ids.length}项内容的原因（可选）` : "请输入拒绝原因（可选）",
+      "审核拒绝",
       {
         confirmButtonText: "确定",
         cancelButtonText: "取消",
-        type: "warning",
+        inputType: "textarea",
+        inputPlaceholder: "请输入拒绝原因，留空则无原因",
+        inputValidator: (value) => {
+          // 允许为空，但如果有值，长度不能超过500
+          if (value && value.length > 500) {
+            return "拒绝原因不能超过500个字符";
+          }
+          return true;
+        },
         draggable: true
       }
     )
-      .then(() => {
+      .then(({ value }) => {
+        // 如果用户输入了内容，即使 trim 后为空字符串，也传递空字符串（而不是 undefined）
+        // 这样后端可以区分"没有输入"和"输入了空字符串"
+        const reason = value !== null && value !== undefined ? value.trim() : undefined;
+        console.log('拒绝原因:', reason, '类型:', typeof reason, '长度:', reason?.length);
         const promises = ids.map(id => {
-          if (type === "songs") return rejectSong(id);
-          if (type === "posts") return rejectPost(id);
-          if (type === "replies") return rejectReply(id);
+          if (type === "songs") return rejectSong(id, reason);
+          if (type === "posts") return rejectPost(id, reason);
+          if (type === "replies") return rejectReply(id, reason);
         });
 
         Promise.all(promises)

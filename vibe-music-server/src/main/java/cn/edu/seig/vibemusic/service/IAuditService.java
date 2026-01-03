@@ -20,9 +20,10 @@ public interface IAuditService {
      * 审核拒绝歌曲
      *
      * @param songId 歌曲ID
+     * @param reason 拒绝原因
      * @return 结果
      */
-    Result rejectSong(Long songId);
+    Result rejectSong(Long songId, String reason);
 
     /**
      * 审核通过帖子
@@ -36,9 +37,10 @@ public interface IAuditService {
      * 审核拒绝帖子
      *
      * @param postId 帖子ID
+     * @param reason 拒绝原因
      * @return 结果
      */
-    Result rejectPost(Long postId);
+    Result rejectPost(Long postId, String reason);
 
     /**
      * 审核通过回复
@@ -52,9 +54,10 @@ public interface IAuditService {
      * 审核拒绝回复
      *
      * @param replyId 回复ID
+     * @param reason 拒绝原因
      * @return 结果
      */
-    Result rejectReply(Long replyId);
+    Result rejectReply(Long replyId, String reason);
 
     /**
      * 审核通过评论
@@ -68,9 +71,10 @@ public interface IAuditService {
      * 审核拒绝评论
      *
      * @param commentId 评论ID
+     * @param reason 拒绝原因
      * @return 结果
      */
-    Result rejectComment(Long commentId);
+    Result rejectComment(Long commentId, String reason);
 
     /**
      * 获取待审核歌曲列表

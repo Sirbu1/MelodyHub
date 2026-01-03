@@ -66,4 +66,9 @@ public class UserDTO implements Serializable {
      * 用户国籍
      */
     private String area;
+
+    /**
+     * 用户积分
+     */
+    private Integer score;
 }

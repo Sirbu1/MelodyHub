@@ -475,10 +475,17 @@ export const approveSong = (id: number) => {
 };
 
 /** 审核管理-审核拒绝歌曲 */
-export const rejectSong = (id: number) => {
+export const rejectSong = (id: number, reason?: string) => {
   const userData = getToken();
+  const params: any = {};
+  // 如果 reason 不是 undefined，就传递它（包括空字符串）
+  if (reason !== undefined) {
+    params.reason = reason;
+  }
+  console.log('rejectSong - id:', id, 'reason:', reason, 'params:', params);
   return http.request<Result>("patch", `/admin/audit/song/reject/${id}`, {
-    headers: { Authorization: userData.accessToken }
+    headers: { Authorization: userData.accessToken },
+    params
   });
 };
 
@@ -491,10 +498,17 @@ export const approvePost = (id: number) => {
 };
 
 /** 审核管理-审核拒绝帖子 */
-export const rejectPost = (id: number) => {
+export const rejectPost = (id: number, reason?: string) => {
   const userData = getToken();
+  const params: any = {};
+  // 如果 reason 不是 undefined，就传递它（包括空字符串）
+  if (reason !== undefined) {
+    params.reason = reason;
+  }
+  console.log('rejectPost - id:', id, 'reason:', reason, 'params:', params);
   return http.request<Result>("patch", `/admin/audit/post/reject/${id}`, {
-    headers: { Authorization: userData.accessToken }
+    headers: { Authorization: userData.accessToken },
+    params
   });
 };
 
@@ -507,10 +521,17 @@ export const approveReply = (id: number) => {
 };
 
 /** 审核管理-审核拒绝回复 */
-export const rejectReply = (id: number) => {
+export const rejectReply = (id: number, reason?: string) => {
   const userData = getToken();
+  const params: any = {};
+  // 如果 reason 不是 undefined，就传递它（包括空字符串）
+  if (reason !== undefined) {
+    params.reason = reason;
+  }
+  console.log('rejectReply - id:', id, 'reason:', reason, 'params:', params);
   return http.request<Result>("patch", `/admin/audit/reply/reject/${id}`, {
-    headers: { Authorization: userData.accessToken }
+    headers: { Authorization: userData.accessToken },
+    params
   });
 };
 
@@ -551,9 +572,14 @@ export const approveComment = (id: number) => {
 };
 
 /** 审核管理-审核拒绝评论 */
-export const rejectComment = (id: number) => {
+export const rejectComment = (id: number, reason?: string) => {
   const userData = getToken();
+  const params: any = {};
+  if (reason) {
+    params.reason = reason;
+  }
   return http.request<Result>("patch", `/admin/audit/comment/reject/${id}`, {
-    headers: { Authorization: userData.accessToken }
+    headers: { Authorization: userData.accessToken },
+    params
   });
 };

@@ -471,11 +471,12 @@ public class AdminController {
      * 审核拒绝歌曲
      *
      * @param songId 歌曲ID
+     * @param reason 拒绝原因
      * @return 结果
      */
     @PatchMapping("/audit/song/reject/{id}")
-    public Result rejectSong(@PathVariable("id") Long songId) {
-        return auditService.rejectSong(songId);
+    public Result rejectSong(@PathVariable("id") Long songId, @RequestParam(value = "reason", required = false) String reason) {
+        return auditService.rejectSong(songId, reason);
     }
 
     /**
@@ -493,11 +494,12 @@ public class AdminController {
      * 审核拒绝帖子
      *
      * @param postId 帖子ID
+     * @param reason 拒绝原因
      * @return 结果
      */
     @PatchMapping("/audit/post/reject/{id}")
-    public Result rejectPost(@PathVariable("id") Long postId) {
-        return auditService.rejectPost(postId);
+    public Result rejectPost(@PathVariable("id") Long postId, @RequestParam(value = "reason", required = false) String reason) {
+        return auditService.rejectPost(postId, reason);
     }
 
     /**
@@ -515,11 +517,12 @@ public class AdminController {
      * 审核拒绝回复
      *
      * @param replyId 回复ID
+     * @param reason 拒绝原因
      * @return 结果
      */
     @PatchMapping("/audit/reply/reject/{id}")
-    public Result rejectReply(@PathVariable("id") Long replyId) {
-        return auditService.rejectReply(replyId);
+    public Result rejectReply(@PathVariable("id") Long replyId, @RequestParam(value = "reason", required = false) String reason) {
+        return auditService.rejectReply(replyId, reason);
     }
 
     /**
@@ -537,11 +540,12 @@ public class AdminController {
      * 审核拒绝评论
      *
      * @param commentId 评论ID
+     * @param reason 拒绝原因
      * @return 结果
      */
     @PatchMapping("/audit/comment/reject/{id}")
-    public Result rejectComment(@PathVariable("id") Long commentId) {
-        return auditService.rejectComment(commentId);
+    public Result rejectComment(@PathVariable("id") Long commentId, @RequestParam(value = "reason", required = false) String reason) {
+        return auditService.rejectComment(commentId, reason);
     }
 
     /**

@@ -21,6 +21,7 @@ import cn.edu.seig.vibemusic.util.JwtUtil;
 import cn.edu.seig.vibemusic.util.ThreadLocalUtil;
 import cn.edu.seig.vibemusic.util.TypeConversionUtil;
 import com.baomidou.mybatisplus.core.conditions.query.QueryWrapper;
+import com.baomidou.mybatisplus.core.conditions.update.UpdateWrapper;
 import com.baomidou.mybatisplus.core.metadata.IPage;
 import com.baomidou.mybatisplus.extension.plugins.pagination.Page;
 import com.baomidou.mybatisplus.extension.service.impl.ServiceImpl;
@@ -124,7 +125,8 @@ public class UserServiceImpl extends ServiceImpl<UserMapper, User> implements IU
         User user = new User();
         user.setUsername(userRegisterDTO.getUsername()).setPassword(passwordMD5).setEmail(userRegisterDTO.getEmail())
                 .setCreateTime(LocalDateTime.now()).setUpdateTime(LocalDateTime.now())
-                .setUserStatus(UserStatusEnum.ENABLE);
+                .setUserStatus(UserStatusEnum.ENABLE)
+                .setScore(100); // 设置初始积分为100
 
         if (userMapper.insert(user) == 0) {
             return Result.error(MessageConstant.REGISTER + MessageConstant.FAILED);
@@ -187,8 +189,21 @@ public class UserServiceImpl extends ServiceImpl<UserMapper, User> implements IU
         Object userIdObj = map.get(JwtClaimsConstant.USER_ID);
         Long userId = TypeConversionUtil.toLong(userIdObj);
         User user = userMapper.selectById(userId);
+        if (user == null) {
+            return Result.error(MessageConstant.NOT_FOUND);
+        }
         UserVO userVO = new UserVO();
         BeanUtils.copyProperties(user, userVO);
+        
+        // 确保积分字段被正确复制
+        if (user.getScore() != null) {
+            userVO.setScore(user.getScore());
+        } else {
+            // 如果为null，设置默认值100
+            userVO.setScore(100);
+        }
+        
+        log.info("获取用户信息 - userId: {}, username: {}, score: {}", userId, user.getUsername(), userVO.getScore());
 
         return Result.success(userVO);
     }
@@ -221,42 +236,57 @@ public class UserServiceImpl extends ServiceImpl<UserMapper, User> implements IU
             return Result.error(MessageConstant.EMAIL + MessageConstant.ALREADY_EXISTS);
         }
 
-        User user = new User();
-        BeanUtils.copyProperties(userDTO, user);
-        user.setUpdateTime(LocalDateTime.now());
+        // 先查询现有用户信息
+        User existingUser = userMapper.selectById(userId);
+        if (existingUser == null) {
+            return Result.error(MessageConstant.NOT_FOUND);
+        }
+        
+        // 使用 UpdateWrapper 来确保所有字段都被正确更新
+        UpdateWrapper<User> updateWrapper = new UpdateWrapper<>();
+        updateWrapper.eq("id", userId);
+        updateWrapper.set("username", userDTO.getUsername());
+        updateWrapper.set("phone", userDTO.getPhone());
+        updateWrapper.set("email", userDTO.getEmail());
+        updateWrapper.set("introduction", userDTO.getIntroduction());
+        updateWrapper.set("gender", userDTO.getGender());
+        // 确保 birth 和 area 字段被正确更新（即使为空字符串也要更新）
+        updateWrapper.set("birth", userDTO.getBirth());
+        updateWrapper.set("area", userDTO.getArea());
+        updateWrapper.set("update_time", LocalDateTime.now());
 
         // 如果用户填写了完整的歌手信息（生日、国籍、简介），自动设置类型为原创歌手（gender=3）
         if (userDTO.getBirth() != null 
             && userDTO.getArea() != null && !userDTO.getArea().trim().isEmpty()
             && userDTO.getIntroduction() != null && !userDTO.getIntroduction().trim().isEmpty()) {
-            user.setGender(3); // 自动设置为原创歌手
+            updateWrapper.set("gender", 3); // 自动设置为原创歌手
         }
 
-        if (userMapper.updateById(user) == 0) {
+        if (userMapper.update(null, updateWrapper) == 0) {
             return Result.error(MessageConstant.UPDATE + MessageConstant.FAILED);
         }
 
         // 如果用户是原创歌手（gender=3），同步更新歌手表中的信息
-        if (user.getGender() != null && user.getGender() == 3) {
+        if (existingUser.getGender() != null && existingUser.getGender() == 3) {
             try {
                 // 查询是否存在对应的歌手记录（通过 username 和 gender=3）
                 QueryWrapper<Artist> artistQueryWrapper = new QueryWrapper<>();
-                artistQueryWrapper.eq("name", user.getUsername())
+                artistQueryWrapper.eq("name", existingUser.getUsername())
                                   .eq("gender", 3); // 原创歌手类型为3
                 Artist existingArtist = artistMapper.selectOne(artistQueryWrapper);
                 
                 if (existingArtist != null) {
                     // 更新现有歌手信息
                     log.info("同步更新原创歌手信息，userId: {}, artistId: {}, username: {}", 
-                            userId, existingArtist.getArtistId(), user.getUsername());
-                    existingArtist.setArtistName(user.getUsername()); // 更新歌手名称
+                            userId, existingArtist.getArtistId(), existingUser.getUsername());
+                    existingArtist.setArtistName(existingUser.getUsername()); // 更新歌手名称
                     existingArtist.setGender(3); // 确保类型为原创歌手
-                    existingArtist.setBirth(user.getBirth());
-                    existingArtist.setArea(user.getArea());
-                    existingArtist.setIntroduction(user.getIntroduction());
+                    existingArtist.setBirth(existingUser.getBirth());
+                    existingArtist.setArea(existingUser.getArea());
+                    existingArtist.setIntroduction(existingUser.getIntroduction());
                     // 如果用户有头像，也更新歌手头像
-                    if (user.getUserAvatar() != null) {
-                        existingArtist.setAvatar(user.getUserAvatar());
+                    if (existingUser.getUserAvatar() != null) {
+                        existingArtist.setAvatar(existingUser.getUserAvatar());
                     }
                     int updateResult = artistMapper.updateById(existingArtist);
                     if (updateResult > 0) {
@@ -268,7 +298,7 @@ public class UserServiceImpl extends ServiceImpl<UserMapper, User> implements IU
                     }
                 } else {
                     log.info("用户是原创歌手但未找到对应的歌手记录，userId: {}, username: {}", 
-                            userId, user.getUsername());
+                            userId, existingUser.getUsername());
                 }
                 
                 // 清除歌手缓存，确保更新后的信息能立即显示
@@ -581,6 +611,7 @@ public class UserServiceImpl extends ServiceImpl<UserMapper, User> implements IU
 
         String passwordMD5 = DigestUtils.md5DigestAsHex(userAddDTO.getPassword().getBytes());
         User user = new User();
+        user.setScore(100); // 设置初始积分为100
         user.setUsername(userAddDTO.getUsername()).setPassword(passwordMD5).setPhone(userAddDTO.getPhone())
                 .setEmail(userAddDTO.getEmail()).setIntroduction(userAddDTO.getIntroduction())
                 .setCreateTime(LocalDateTime.now()).setUpdateTime(LocalDateTime.now());

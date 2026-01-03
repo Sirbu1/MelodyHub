@@ -4,6 +4,7 @@ import {
   getFavoritePlaylists,
 } from '@/api/system'
 import coverImg from '@/assets/cover.png'
+import userAvatar from '@/assets/user.jpg'
 import { ElNotification } from 'element-plus'
 
 // 路由
@@ -172,7 +173,8 @@ onMounted(() => {
             <div class="flex flex-col space-y-1.5 p-0">
               <div class="relative">
                 <el-image lazy :alt="playlist.name" class="w-full aspect-square object-cover"
-                  :src="playlist.coverImgUrl + '?param=330y330'" />
+                  :src="(playlist.coverImgUrl || coverImg) + '?param=330y330'"
+                  @error="(e) => { (e.target as HTMLImageElement).src = coverImg }" />
                 <button
                   class="inline-flex items-center justify-center gap-2 whitespace-nowrap text-sm font-medium ring-offset-background transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:pointer-events-none disabled:opacity-50 [&_svg]:pointer-events-none [&_svg]:size-4 [&_svg]:shrink-0 bg-secondary text-secondary-foreground hover:bg-secondary/80 h-10 w-10 absolute bottom-2 right-2 rounded-full">
                   <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none"
@@ -190,7 +192,7 @@ onMounted(() => {
               <div class="flex items-center text-sm text-muted-foreground">
                 <span class="relative flex shrink-0 overflow-hidden rounded-full w-6 h-6 mr-2">
                   <el-avatar class="aspect-square h-full w-full" :alt="playlist.creator.nickname"
-                    :src="playlist.creator.avatarUrl" />
+                    :src="playlist.creator.avatarUrl || userAvatar" />
                 </span>
                 <span>{{ playlist.creator.nickname }}</span>
               </div>

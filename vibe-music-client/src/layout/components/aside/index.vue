@@ -7,6 +7,7 @@ import { UserStore } from '@/stores/modules/user'
 import { ElMessage } from 'element-plus'
 import AuthTabs from '@/components/Auth/AuthTabs.vue'
 import { useFavoriteStore } from '@/stores/modules/favorite'
+import coverImg from '@/assets/cover.png'
 
 const route = useRoute()
 const router = useRouter()
@@ -78,8 +79,9 @@ const handleProtectedRoute = (path: string) => {
                 'bg-activeMenuBg': route.path === `/playlist/${item.id}`,
                 'hover:bg-hoverMenuBg': route.path !== `/playlist/${item.id}`,
               }" @click="router.push(`/playlist/${item.id}`)">
-              <el-image lazy :src="item.coverImgUrl + '?param=50y50'" class="w-10 h-10 rounded-md flex-shrink-0"
-                :alt="item.name" />
+              <el-image lazy :src="(item.coverImgUrl || coverImg) + '?param=50y50'" class="w-10 h-10 rounded-md flex-shrink-0"
+                :alt="item.name"
+                @error="(e) => { (e.target as HTMLImageElement).src = coverImg }" />
               <div class="flex-1 min-w-0">
                 <span class="line-clamp-2 text-sm leading-normal">{{ item.name }}</span>
               </div>

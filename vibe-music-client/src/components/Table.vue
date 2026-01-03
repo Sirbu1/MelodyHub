@@ -137,6 +137,14 @@ const isCurrentPlaying = (songId: number) => {
   const currentTrack = audio.trackList[audio.currentSongIndex]
   return currentTrack && Number(currentTrack.id) === songId
 }
+
+// 处理封面图片加载失败
+const handleCoverError = (event: Event) => {
+  const target = event.target as HTMLImageElement
+  if (target && target.src !== default_album) {
+    target.src = default_album
+  }
+}
 </script>
 
 <template>
@@ -173,7 +181,8 @@ const isCurrentPlaying = (songId: number) => {
               fit="cover" 
               lazy 
               :alt="row.songName" 
-              class="w-full h-full rounded-md" 
+              class="w-full h-full rounded-md"
+              @error="handleCoverError"
             />
             <!-- Play 按钮，使用 group-hover 控制透明度 -->
             <div

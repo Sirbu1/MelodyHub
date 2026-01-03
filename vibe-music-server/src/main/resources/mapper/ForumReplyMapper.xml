@@ -14,6 +14,7 @@
         <result column="parent_username" property="parentUsername"/>
         <result column="like_count" property="likeCount"/>
         <result column="audit_status" property="auditStatus"/>
+        <result column="audit_reason" property="auditReason"/>
         <result column="create_time" property="createTime"/>
     </resultMap>
 
@@ -90,6 +91,7 @@
             NULL as parent_username,
             r.like_count,
             r.audit_status,
+            r.audit_reason,
             r.create_time
         FROM tb_forum_reply r
         LEFT JOIN tb_user u ON r.user_id = u.id

@@ -86,4 +86,10 @@ public class Comment implements Serializable {
     @TableField("audit_status")
     private Integer auditStatus;
 
+    /**
+     * 审核未通过原因
+     */
+    @TableField("audit_reason")
+    private String auditReason;
+
 }

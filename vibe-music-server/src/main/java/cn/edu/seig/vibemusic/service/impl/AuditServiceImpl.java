@@ -16,6 +16,7 @@ import cn.edu.seig.vibemusic.result.PageResult;
 import cn.edu.seig.vibemusic.result.Result;
 import cn.edu.seig.vibemusic.service.IAuditService;
 import com.baomidou.mybatisplus.core.conditions.query.QueryWrapper;
+import com.baomidou.mybatisplus.core.conditions.update.UpdateWrapper;
 import com.baomidou.mybatisplus.core.metadata.IPage;
 import com.baomidou.mybatisplus.extension.plugins.pagination.Page;
 import lombok.extern.slf4j.Slf4j;
@@ -175,15 +176,34 @@ public class AuditServiceImpl implements IAuditService {
     @Override
     @Transactional
     @CacheEvict(cacheNames = "songCache", allEntries = true)
-    public Result rejectSong(Long songId) {
+    public Result rejectSong(Long songId, String reason) {
+        log.info("拒绝歌曲 - songId: {}, reason: {}", songId, reason);
         Song song = songMapper.selectById(songId);
         if (song == null) {
             return Result.error(MessageConstant.NOT_FOUND);
         }
         song.setAuditStatus(2); // 未通过
+        song.setAuditReason(reason); // 设置拒绝原因（可以是 null 或空字符串）
+        log.info("更新歌曲 - auditStatus: {}, auditReason: {}", song.getAuditStatus(), song.getAuditReason());
         if (songMapper.updateById(song) == 0) {
             return Result.error("审核失败");
         }
+        
+        // 扣除用户积分10分
+        if (song.getCreatorId() != null) {
+            User creator = userMapper.selectById(song.getCreatorId());
+            if (creator != null) {
+                int currentScore = creator.getScore() != null ? creator.getScore() : 100;
+                int newScore = Math.max(0, currentScore - 10); // 确保积分不为负数
+                UpdateWrapper<User> updateWrapper = new UpdateWrapper<>();
+                updateWrapper.eq("id", song.getCreatorId());
+                updateWrapper.set("score", newScore);
+                userMapper.update(null, updateWrapper);
+                log.info("扣除用户积分 - userId: {}, 原积分: {}, 新积分: {}", song.getCreatorId(), currentScore, newScore);
+            }
+        }
+        
+        log.info("歌曲拒绝成功 - songId: {}, auditReason: {}", songId, song.getAuditReason());
         return Result.success("审核拒绝");
     }
 
@@ -203,15 +223,34 @@ public class AuditServiceImpl implements IAuditService {
 
     @Override
     @Transactional
-    public Result rejectPost(Long postId) {
+    public Result rejectPost(Long postId, String reason) {
+        log.info("拒绝帖子 - postId: {}, reason: {}", postId, reason);
         ForumPost post = forumPostMapper.selectById(postId);
         if (post == null) {
             return Result.error(MessageConstant.NOT_FOUND);
         }
         post.setAuditStatus(2); // 未通过
+        post.setAuditReason(reason); // 设置拒绝原因（可以是 null 或空字符串）
+        log.info("更新帖子 - auditStatus: {}, auditReason: {}", post.getAuditStatus(), post.getAuditReason());
         if (forumPostMapper.updateById(post) == 0) {
             return Result.error("审核失败");
         }
+        
+        // 扣除用户积分10分
+        if (post.getUserId() != null) {
+            User user = userMapper.selectById(post.getUserId());
+            if (user != null) {
+                int currentScore = user.getScore() != null ? user.getScore() : 100;
+                int newScore = Math.max(0, currentScore - 10); // 确保积分不为负数
+                UpdateWrapper<User> updateWrapper = new UpdateWrapper<>();
+                updateWrapper.eq("id", post.getUserId());
+                updateWrapper.set("score", newScore);
+                userMapper.update(null, updateWrapper);
+                log.info("扣除用户积分 - userId: {}, 原积分: {}, 新积分: {}", post.getUserId(), currentScore, newScore);
+            }
+        }
+        
+        log.info("帖子拒绝成功 - postId: {}, auditReason: {}", postId, post.getAuditReason());
         return Result.success("审核拒绝");
     }
 
@@ -231,15 +270,34 @@ public class AuditServiceImpl implements IAuditService {
 
     @Override
     @Transactional
-    public Result rejectReply(Long replyId) {
+    public Result rejectReply(Long replyId, String reason) {
+        log.info("拒绝回复 - replyId: {}, reason: {}", replyId, reason);
         ForumReply reply = forumReplyMapper.selectById(replyId);
         if (reply == null) {
             return Result.error(MessageConstant.NOT_FOUND);
         }
         reply.setAuditStatus(2); // 未通过
+        reply.setAuditReason(reason); // 设置拒绝原因（可以是 null 或空字符串）
+        log.info("更新回复 - auditStatus: {}, auditReason: {}", reply.getAuditStatus(), reply.getAuditReason());
         if (forumReplyMapper.updateById(reply) == 0) {
             return Result.error("审核失败");
         }
+        
+        // 扣除用户积分10分
+        if (reply.getUserId() != null) {
+            User user = userMapper.selectById(reply.getUserId());
+            if (user != null) {
+                int currentScore = user.getScore() != null ? user.getScore() : 100;
+                int newScore = Math.max(0, currentScore - 10); // 确保积分不为负数
+                UpdateWrapper<User> updateWrapper = new UpdateWrapper<>();
+                updateWrapper.eq("id", reply.getUserId());
+                updateWrapper.set("score", newScore);
+                userMapper.update(null, updateWrapper);
+                log.info("扣除用户积分 - userId: {}, 原积分: {}, 新积分: {}", reply.getUserId(), currentScore, newScore);
+            }
+        }
+        
+        log.info("回复拒绝成功 - replyId: {}, auditReason: {}", replyId, reply.getAuditReason());
         return Result.success("审核拒绝");
     }
 
@@ -259,15 +317,34 @@ public class AuditServiceImpl implements IAuditService {
 
     @Override
     @Transactional
-    public Result rejectComment(Long commentId) {
+    public Result rejectComment(Long commentId, String reason) {
+        log.info("拒绝评论 - commentId: {}, reason: {}", commentId, reason);
         Comment comment = commentMapper.selectById(commentId);
         if (comment == null) {
             return Result.error(MessageConstant.NOT_FOUND);
         }
         comment.setAuditStatus(2); // 未通过
+        comment.setAuditReason(reason); // 设置拒绝原因
+        log.info("更新评论 - auditStatus: {}, auditReason: {}", comment.getAuditStatus(), comment.getAuditReason());
         if (commentMapper.updateById(comment) == 0) {
             return Result.error("审核失败");
         }
+        
+        // 扣除用户积分10分
+        if (comment.getUserId() != null) {
+            User user = userMapper.selectById(comment.getUserId());
+            if (user != null) {
+                int currentScore = user.getScore() != null ? user.getScore() : 100;
+                int newScore = Math.max(0, currentScore - 10); // 确保积分不为负数
+                UpdateWrapper<User> updateWrapper = new UpdateWrapper<>();
+                updateWrapper.eq("id", comment.getUserId());
+                updateWrapper.set("score", newScore);
+                userMapper.update(null, updateWrapper);
+                log.info("扣除用户积分 - userId: {}, 原积分: {}, 新积分: {}", comment.getUserId(), currentScore, newScore);
+            }
+        }
+        
+        log.info("评论拒绝成功 - commentId: {}, auditReason: {}", commentId, comment.getAuditReason());
         return Result.success("审核拒绝");
     }
 

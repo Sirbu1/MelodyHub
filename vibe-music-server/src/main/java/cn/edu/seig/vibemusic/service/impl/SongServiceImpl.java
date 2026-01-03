@@ -619,6 +619,13 @@ public class SongServiceImpl extends ServiceImpl<SongMapper, Song> implements IS
         if (user == null) {
             return Result.error("用户不存在");
         }
+        
+        // 检查用户积分是否大于0
+        int userScore = user.getScore() != null ? user.getScore() : 100;
+        if (userScore <= 0) {
+            return Result.error("当前账号无发布权限，积分不足（积分为0时无法发帖、发歌、回复）");
+        }
+        
         if (user.getBirth() == null 
             || user.getArea() == null || user.getArea().trim().isEmpty()
             || user.getIntroduction() == null || user.getIntroduction().trim().isEmpty()) {

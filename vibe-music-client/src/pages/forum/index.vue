@@ -114,6 +114,18 @@ const openPostDialog = () => {
     })
     return
   }
+  
+  // 检查用户积分
+  const userScore = userStore.userInfo?.score ?? 100
+  if (userScore <= 0) {
+    ElNotification({
+      type: 'error',
+      message: '当前账号无发布权限，积分不足（积分为0时无法发帖、发歌、回复）',
+      duration: 3000,
+    })
+    return
+  }
+  
   // 根据当前模块设置类型
   newPost.type = activeModule.value === 'discussion' ? 0 : 1
   showPostDialog.value = true

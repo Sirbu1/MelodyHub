@@ -168,6 +168,7 @@
             s.create_time AS createTime,
             s.creator_id AS creatorId,
             s.audit_status AS auditStatus,
+            s.audit_reason AS auditReason,
             u.username AS creatorName
         FROM tb_song s
         LEFT JOIN tb_user u ON s.creator_id = u.id

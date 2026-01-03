@@ -59,4 +59,9 @@ public class UserVO implements Serializable {
      */
     private String area;
 
+    /**
+     * 用户积分
+     */
+    private Integer score;
+
 }

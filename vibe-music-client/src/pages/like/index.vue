@@ -98,7 +98,8 @@ onMounted(() => {
     <div class="flex flex-col md:flex-row p-6 gap-6">
       <div class="flex-shrink-0 w-60 h-60">
         <img :alt="playlist.name" class="w-full h-full object-cover rounded-lg shadow-lg"
-          :src="playlist.coverImgUrl + '?param=500y500'" />
+          :src="(playlist.coverImgUrl || coverImg) + '?param=500y500'"
+          @error="(e) => { (e.target as HTMLImageElement).src = coverImg }" />
       </div>
       <div class="flex flex-col justify-between flex-1">
         <div>

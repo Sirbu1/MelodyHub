@@ -64,7 +64,8 @@
                   fit="cover" 
                   lazy 
                   :alt="row.songName" 
-                  class="w-full h-full rounded-md" 
+                  class="w-full h-full rounded-md"
+                  @error="handleCoverError"
                 />
                 <!-- Play 按钮，使用 group-hover 控制透明度 -->
                 <div
@@ -376,6 +377,14 @@ const handlePlay = async (row: Song) => {
 const isCurrentPlaying = (songId: number) => {
   const currentTrack = audio.trackList[audio.currentSongIndex]
   return currentTrack && Number(currentTrack.id) === songId
+}
+
+// 处理封面图片加载失败
+const handleCoverError = (event: Event) => {
+  const target = event.target as HTMLImageElement
+  if (target && target.src !== default_album) {
+    target.src = default_album
+  }
 }
 
 // 更新所有相同歌曲的喜欢状态

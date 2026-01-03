@@ -111,6 +111,12 @@ public class User implements Serializable {
     private String area;
 
     /**
+     * 用户积分，初始值为100
+     */
+    @TableField(value = "score", select = true)
+    private Integer score;
+
+    /**
      * 用户创建时间
      */
     @JsonFormat(pattern = "yyyy-MM-dd HH:mm:ss")

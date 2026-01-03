@@ -85,6 +85,15 @@
               >
                 {{ getStatusText(song.auditStatus) }}
               </el-tag>
+              <div v-if="song.auditStatus === 2 && song.auditReason" class="mt-2 p-3 bg-red-50 border border-red-200 rounded-lg">
+                <div class="flex items-start gap-2">
+                  <icon-mdi:alert-circle class="text-red-500 mt-0.5 flex-shrink-0" />
+                  <div class="flex-1">
+                    <div class="text-sm font-semibold text-red-700 mb-1">审核未通过</div>
+                    <div class="text-sm text-red-600 leading-relaxed">{{ song.auditReason }}</div>
+                  </div>
+                </div>
+              </div>
               <el-button
                 v-if="song.auditStatus === 2"
                 type="warning"
@@ -146,6 +155,15 @@
               >
                 {{ getStatusText(post.auditStatus) }}
               </el-tag>
+              <div v-if="post.auditStatus === 2 && post.auditReason" class="mt-2 p-3 bg-red-50 border border-red-200 rounded-lg">
+                <div class="flex items-start gap-2">
+                  <icon-mdi:alert-circle class="text-red-500 mt-0.5 flex-shrink-0" />
+                  <div class="flex-1">
+                    <div class="text-sm font-semibold text-red-700 mb-1">审核未通过</div>
+                    <div class="text-sm text-red-600 leading-relaxed">{{ post.auditReason }}</div>
+                  </div>
+                </div>
+              </div>
               <el-button
                 v-if="post.auditStatus === 2"
                 type="warning"
@@ -217,6 +235,15 @@
               >
                 {{ getStatusText(reply.auditStatus) }}
               </el-tag>
+              <div v-if="reply.auditStatus === 2 && reply.auditReason" class="mt-2 p-3 bg-red-50 border border-red-200 rounded-lg">
+                <div class="flex items-start gap-2">
+                  <icon-mdi:alert-circle class="text-red-500 mt-0.5 flex-shrink-0" />
+                  <div class="flex-1">
+                    <div class="text-sm font-semibold text-red-700 mb-1">审核未通过</div>
+                    <div class="text-sm text-red-600 leading-relaxed">{{ reply.auditReason }}</div>
+                  </div>
+                </div>
+              </div>
               <el-button
                 v-if="reply.auditStatus === 2"
                 type="warning"
@@ -268,6 +295,95 @@
     <!-- DrawerMusic 播放页面 -->
     <DrawerMusic v-model="showDrawerMusic" />
 
+    <!-- 歌曲详情对话框 -->
+    <el-dialog
+      v-model="showSongDialog"
+      title="歌曲详情"
+      width="70%"
+      :close-on-click-modal="false"
+    >
+      <div v-if="songDetail" class="song-detail-dialog">
+        <div class="song-header mb-4">
+          <h2 class="text-2xl font-bold mb-2">{{ songDetail.songName }}</h2>
+          <div class="flex items-center gap-4 text-sm text-muted-foreground">
+            <span>风格：{{ songDetail.style || '未设置' }}</span>
+            <span>时长：{{ songDetail.duration || '0' }}秒</span>
+            <span>上传时间：{{ formatTime(songDetail.createTime) }}</span>
+            <el-tag
+              :type="getStatusType(songDetail.auditStatus)"
+              size="small"
+            >
+              {{ getStatusText(songDetail.auditStatus) }}
+            </el-tag>
+          </div>
+          <div v-if="songDetail && isRejected(songDetail.auditStatus)" class="mt-4 p-4 bg-red-50 border-2 border-red-300 rounded-lg">
+            <div class="flex items-start gap-3">
+              <icon-mdi:alert-circle class="text-red-500 text-2xl mt-0.5 flex-shrink-0" />
+              <div class="flex-1">
+                <div class="text-base font-bold text-red-700 mb-2">审核未通过</div>
+                <div v-if="songDetail.auditReason" class="text-sm text-red-600 leading-relaxed whitespace-pre-wrap mb-2">
+                  <strong>未通过原因：</strong>{{ songDetail.auditReason }}
+                </div>
+                <div v-else class="text-sm text-red-500 mb-2">
+                  管理员未填写拒绝原因
+                </div>
+                <div class="mt-3 text-xs text-red-500">
+                  <icon-mdi:information-outline class="inline mr-1" />
+                  您可以修改内容后重新提交审核
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+        
+        <div class="song-content mb-6">
+          <div class="grid grid-cols-2 gap-4">
+            <div class="bg-card rounded-lg p-4 border">
+              <div class="text-sm text-muted-foreground mb-1">歌曲名称</div>
+              <div class="text-base font-medium">{{ songDetail.songName }}</div>
+            </div>
+            <div class="bg-card rounded-lg p-4 border">
+              <div class="text-sm text-muted-foreground mb-1">创建者</div>
+              <div class="text-base font-medium">{{ songDetail.creatorName || '未知' }}</div>
+            </div>
+            <div class="bg-card rounded-lg p-4 border">
+              <div class="text-sm text-muted-foreground mb-1">风格</div>
+              <div class="text-base font-medium">{{ songDetail.style || '未设置' }}</div>
+            </div>
+            <div class="bg-card rounded-lg p-4 border">
+              <div class="text-sm text-muted-foreground mb-1">时长</div>
+              <div class="text-base font-medium">{{ songDetail.duration || '0' }}秒</div>
+            </div>
+            <div class="bg-card rounded-lg p-4 border">
+              <div class="text-sm text-muted-foreground mb-1">是否原创</div>
+              <div class="text-base font-medium">{{ songDetail.isOriginal ? '是' : '否' }}</div>
+            </div>
+            <div class="bg-card rounded-lg p-4 border">
+              <div class="text-sm text-muted-foreground mb-1">上传时间</div>
+              <div class="text-base font-medium">{{ formatTime(songDetail.createTime) }}</div>
+            </div>
+          </div>
+        </div>
+
+        <div class="song-actions flex gap-2">
+          <el-button
+            v-if="songDetail.auditStatus === 2"
+            type="warning"
+            @click="handleReupload(songDetail)"
+          >
+            重新上传
+          </el-button>
+          <el-button
+            v-if="songDetail.audioUrl"
+            type="primary"
+            @click="playSong(songDetail)"
+          >
+            播放歌曲
+          </el-button>
+        </div>
+      </div>
+    </el-dialog>
+
     <!-- 帖子详情对话框 -->
     <el-dialog
       v-model="showPostDialog"
@@ -288,6 +404,24 @@
               {{ getStatusText(postDetail.auditStatus) }}
             </el-tag>
           </div>
+          <div v-if="postDetail && isRejected(postDetail.auditStatus)" class="mb-4 p-4 bg-red-50 border-2 border-red-300 rounded-lg">
+            <div class="flex items-start gap-3">
+              <icon-mdi:alert-circle class="text-red-500 text-2xl mt-0.5 flex-shrink-0" />
+              <div class="flex-1">
+                <div class="text-base font-bold text-red-700 mb-2">审核未通过</div>
+                <div v-if="postDetail.auditReason" class="text-sm text-red-600 leading-relaxed whitespace-pre-wrap mb-2">
+                  <strong>未通过原因：</strong>{{ postDetail.auditReason }}
+                </div>
+                <div v-else class="text-sm text-red-500 mb-2">
+                  管理员未填写拒绝原因
+                </div>
+                <div class="mt-3 text-xs text-red-500">
+                  <icon-mdi:information-outline class="inline mr-1" />
+                  您可以修改内容后重新提交审核
+                </div>
+              </div>
+            </div>
+          </div>
         </div>
         
         <div class="post-content mb-6">
@@ -304,7 +438,7 @@
               class="reply-item-dialog bg-card rounded-lg p-4 border"
             >
               <div class="flex gap-3">
-                <el-avatar :src="reply.userAvatar" :size="40" />
+                <el-avatar :src="reply.userAvatar || userAvatar" :size="40" />
                 <div class="flex-1">
                   <div class="flex items-center gap-2 mb-2">
                     <span class="font-medium">{{ reply.username }}</span>
@@ -567,6 +701,24 @@
                 {{ getStatusText(replyDetail.auditStatus) }}
               </el-tag>
             </div>
+            <div v-if="replyDetail && isRejected(replyDetail.auditStatus)" class="mb-4 p-4 bg-red-50 border-2 border-red-300 rounded-lg">
+              <div class="flex items-start gap-3">
+                <icon-mdi:alert-circle class="text-red-500 text-2xl mt-0.5 flex-shrink-0" />
+                <div class="flex-1">
+                  <div class="text-base font-bold text-red-700 mb-2">审核未通过</div>
+                  <div v-if="replyDetail.auditReason" class="text-sm text-red-600 leading-relaxed whitespace-pre-wrap mb-2">
+                    <strong>未通过原因：</strong>{{ replyDetail.auditReason }}
+                  </div>
+                  <div v-else class="text-sm text-red-500 mb-2">
+                    管理员未填写拒绝原因
+                  </div>
+                  <div class="mt-3 text-xs text-red-500">
+                    <icon-mdi:information-outline class="inline mr-1" />
+                    您可以修改内容后重新提交审核
+                  </div>
+                </div>
+              </div>
+            </div>
             <div class="text-foreground">{{ replyDetail.content }}</div>
           </div>
         </div>
@@ -581,7 +733,7 @@
               class="reply-item-dialog bg-card rounded-lg p-4 border"
             >
               <div class="flex gap-3">
-                <el-avatar :src="reply.userAvatar" :size="40" />
+                <el-avatar :src="reply.userAvatar || userAvatar" :size="40" />
                 <div class="flex-1">
                   <div class="flex items-center gap-2 mb-2">
                     <span class="font-medium">{{ reply.username }}</span>
@@ -608,13 +760,14 @@
 import { ref, onMounted, onActivated, watch } from 'vue'
 import { useRoute, useRouter, onBeforeRouteUpdate } from 'vue-router'
 import { UserStore } from '@/stores/modules/user'
-import { getUserOriginalSongs, getUserPosts, getUserReplies, getForumPostDetail, getForumReplies, updateOriginalSong, updateForumPost, updateForumReply, deleteOriginalSong, deleteForumPost, deleteForumReply } from '@/api/system'
+import { getUserOriginalSongs, getUserPosts, getUserReplies, getForumPostDetail, getForumReplies, getSongDetail, updateOriginalSong, updateForumPost, updateForumReply, deleteOriginalSong, deleteForumPost, deleteForumReply } from '@/api/system'
 import AuthTabs from '@/components/Auth/AuthTabs.vue'
 import DrawerMusic from '@/components/DrawerMusic/index.vue'
 import { ElMessage, ElMessageBox } from 'element-plus'
 import { AudioStore } from '@/stores/modules/audio'
 import { useAudioPlayer } from '@/hooks/useAudioPlayer'
 import default_album from '@/assets/default_album.jpg'
+import userAvatar from '@/assets/user.jpg'
 
 const route = useRoute()
 const router = useRouter()
@@ -632,6 +785,10 @@ const replies = ref<any[]>([])
 
 // DrawerMusic 控制
 const showDrawerMusic = ref(false)
+
+// 歌曲详情对话框
+const showSongDialog = ref(false)
+const songDetail = ref<any>(null)
 
 // 帖子详情对话框
 const showPostDialog = ref(false)
@@ -695,9 +852,10 @@ const handleStatusChange = () => {
 }
 
 // 获取状态文本
-const getStatusText = (status: number | null | undefined) => {
+const getStatusText = (status: number | string | null | undefined) => {
   if (status === null || status === undefined) return '待审核'
-  switch (status) {
+  const statusNum = typeof status === 'string' ? parseInt(status) : status
+  switch (statusNum) {
     case 0:
       return '待审核'
     case 1:
@@ -710,9 +868,10 @@ const getStatusText = (status: number | null | undefined) => {
 }
 
 // 获取状态类型
-const getStatusType = (status: number | null | undefined) => {
+const getStatusType = (status: number | string | null | undefined) => {
   if (status === null || status === undefined) return 'warning'
-  switch (status) {
+  const statusNum = typeof status === 'string' ? parseInt(status) : status
+  switch (statusNum) {
     case 0:
       return 'warning'
     case 1:
@@ -722,6 +881,13 @@ const getStatusType = (status: number | null | undefined) => {
     default:
       return 'info'
   }
+}
+
+// 检查是否为未通过状态
+const isRejected = (status: number | string | null | undefined) => {
+  if (status === null || status === undefined) return false
+  const statusNum = typeof status === 'string' ? parseInt(status) : status
+  return statusNum === 2
 }
 
 // 格式化时间
@@ -783,8 +949,8 @@ const loadData = async () => {
   }
 }
 
-// 查看歌曲详情 - 打开 DrawerMusic 播放页面
-const viewSongDetail = async (song: any) => {
+// 播放歌曲
+const playSong = async (song: any) => {
   try {
     // 转换歌曲为 trackModel 格式
     const track = {
@@ -809,9 +975,29 @@ const viewSongDetail = async (song: any) => {
     
     // 打开 DrawerMusic 抽屉
     showDrawerMusic.value = true
+    // 关闭详情对话框
+    showSongDialog.value = false
   } catch (error) {
-    console.error('打开歌曲播放页面失败:', error)
-    ElMessage.error('打开歌曲播放页面失败')
+    console.error('播放歌曲失败:', error)
+    ElMessage.error('播放歌曲失败')
+  }
+}
+
+// 查看歌曲详情
+const viewSongDetail = async (song: any) => {
+  // 如果未通过审核，显示详情对话框
+  if (song.auditStatus === 2) {
+    // 直接使用列表数据，因为列表数据已经包含完整的审核信息（包括 auditReason）
+    // getSongDetail API 会过滤掉未通过的歌曲，所以不能使用它
+    songDetail.value = {
+      ...song,
+      // 确保 auditReason 字段存在
+      auditReason: song.auditReason || null
+    }
+    showSongDialog.value = true
+  } else {
+    // 否则直接播放歌曲
+    await playSong(song)
   }
 }
 
@@ -846,10 +1032,34 @@ const handleReplyClick = (reply: any) => {
 const viewPostDetail = async (post: any) => {
   try {
     loading.value = true
+    console.log('=== 查看帖子详情 ===')
+    console.log('列表数据:', post)
+    console.log('列表数据 auditStatus:', post.auditStatus)
+    console.log('列表数据 auditReason:', post.auditReason)
+    
     // 获取帖子详情
     const postRes = await getForumPostDetail(post.postId)
+    console.log('API 响应:', postRes)
+    
     if (postRes.code === 0 && postRes.data) {
-      postDetail.value = postRes.data
+      // 如果返回的是 ForumPostDetailWithOrdersVO，需要提取 postDetail
+      const detailData = postRes.data.postDetail || postRes.data
+      console.log('详情数据:', detailData)
+      console.log('详情数据 auditStatus:', detailData.auditStatus)
+      console.log('详情数据 auditReason:', detailData.auditReason)
+      
+      // 合并列表数据和详情数据，确保包含 auditReason
+      postDetail.value = {
+        ...detailData,
+        // 确保 auditReason 存在（优先使用详情数据，如果没有则使用列表数据）
+        auditReason: detailData.auditReason || post.auditReason || null,
+        // 确保 auditStatus 存在
+        auditStatus: detailData.auditStatus !== undefined ? detailData.auditStatus : post.auditStatus
+      }
+      
+      console.log('最终 postDetail.value:', postDetail.value)
+      console.log('最终 auditStatus:', postDetail.value.auditStatus)
+      console.log('最终 auditReason:', postDetail.value.auditReason)
       
       // 获取帖子回复
       const repliesRes = await getForumReplies({
@@ -877,12 +1087,30 @@ const viewPostDetail = async (post: any) => {
 const viewReplyDetail = async (reply: any) => {
   try {
     loading.value = true
-    replyDetail.value = reply
+    console.log('=== 查看回复详情 ===')
+    console.log('列表数据:', reply)
+    console.log('列表数据 auditStatus:', reply.auditStatus)
+    console.log('列表数据 auditReason:', reply.auditReason)
+    
+    // 直接使用列表数据，因为列表数据已经包含 auditReason
+    // 确保 replyDetail 包含完整的审核信息
+    replyDetail.value = {
+      ...reply,
+      // 确保 auditReason 存在
+      auditReason: reply.auditReason || null,
+      // 确保 auditStatus 存在
+      auditStatus: reply.auditStatus !== undefined ? reply.auditStatus : null
+    }
+    
+    console.log('最终 replyDetail.value:', replyDetail.value)
+    console.log('最终 auditStatus:', replyDetail.value.auditStatus)
+    console.log('最终 auditReason:', replyDetail.value.auditReason)
     
     // 获取对应的帖子详情
     const postRes = await getForumPostDetail(reply.postId)
     if (postRes.code === 0 && postRes.data) {
-      replyPostDetail.value = postRes.data
+      // 如果返回的是 ForumPostDetailWithOrdersVO，需要提取 postDetail
+      replyPostDetail.value = postRes.data.postDetail || postRes.data
       
       // 获取帖子回复
       const repliesRes = await getForumReplies({

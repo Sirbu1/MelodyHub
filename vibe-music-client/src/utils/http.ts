@@ -8,6 +8,7 @@ import NProgress from '@/config/nprogress'
 import 'nprogress/nprogress.css'
 import { UserStore } from '@/stores/modules/user'
 import { ElMessage } from 'element-plus'
+import responseTimeMonitor from './responseTimeMonitor'
 
 const instance: AxiosInstance = axios.create({
   baseURL: 'http://localhost:8080', // 设置为后端服务地址
@@ -25,6 +26,14 @@ instance.interceptors.request.use(
   (config: InternalAxiosRequestConfig) => {
     // 开启进度条
     NProgress.start()
+
+    // 记录请求开始时间
+    const requestId = responseTimeMonitor.recordRequestStart({
+      url: config.url,
+      method: config.method,
+    })
+    // 将请求ID存储到config中，以便响应时使用
+    ;(config as any).__requestId = requestId
 
     // 检查是否是FormData请求
     const isFormData = config.data instanceof FormData
@@ -85,12 +94,34 @@ instance.interceptors.response.use(
   (response) => {
     // 关闭进度条
     NProgress.done()
+    
+    // 记录响应时间
+    const requestId = (response.config as any).__requestId
+    if (requestId) {
+      const duration = responseTimeMonitor.recordRequestEnd(
+        requestId,
+        response.config.url
+      )
+      // 如果是播放歌曲的API，在控制台输出响应时间（可选）
+      if (response.config.url?.includes('song/url/v1') && duration) {
+        console.log(
+          `🎵 歌曲播放请求响应时间: ${responseTimeMonitor.formatDuration(duration)}`
+        )
+      }
+    }
+
     const { data } = response
     return data
   },
   (error) => {
     // 关闭进度条
     NProgress.done()
+
+    // 记录错误请求的响应时间
+    const requestId = (error.config as any)?.__requestId
+    if (requestId) {
+      responseTimeMonitor.recordRequestEnd(requestId, error.config?.url)
+    }
 
     if (error.response) {
       // 定义公开接口路径

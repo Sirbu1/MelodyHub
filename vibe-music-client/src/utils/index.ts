@@ -88,3 +88,45 @@ export function parseTimestamp(timestamp: string): string {
   // 返回格式化后的日期字符串
   return `${year}-${month}-${day} ${hours}:${minutes}:${seconds}`
 }
+
+/**
+ * 获取播放歌曲API的平均响应时间
+ * @returns 平均响应时间（毫秒），如果没有数据则返回null
+ */
+export function getSongPlaybackAverageResponseTime(): number | null {
+  if (typeof window === 'undefined') return null
+  
+  const monitor = (window as any).responseTimeMonitor
+  if (!monitor) return null
+
+  const stats = monitor.getSongPlaybackStats()
+  return stats ? stats.averageTime : null
+}
+
+/**
+ * 获取播放歌曲API的响应时间统计信息
+ * @returns 统计信息对象
+ */
+export function getSongPlaybackStats() {
+  if (typeof window === 'undefined') return null
+  
+  const monitor = (window as any).responseTimeMonitor
+  if (!monitor) return null
+
+  return monitor.getSongPlaybackStats()
+}
+
+/**
+ * 在控制台打印播放歌曲API的响应时间统计报告
+ */
+export function printSongPlaybackStats() {
+  if (typeof window === 'undefined') return
+  
+  const monitor = (window as any).responseTimeMonitor
+  if (!monitor) {
+    console.warn('响应时间监控器未初始化')
+    return
+  }
+
+  monitor.printReport('song/url/v1')
+}

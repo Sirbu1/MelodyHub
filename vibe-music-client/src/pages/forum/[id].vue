@@ -157,6 +157,17 @@ const submitReply = async () => {
     return
   }
 
+  // 检查用户积分
+  const userScore = userStore.userInfo?.score ?? 100
+  if (userScore <= 0) {
+    ElNotification({
+      type: 'error',
+      message: '当前账号无发布权限，积分不足（积分为0时无法发帖、发歌、回复）',
+      duration: 3000,
+    })
+    return
+  }
+
   if (!replyContent.value.trim()) {
     ElNotification({
       type: 'warning',
@@ -220,6 +231,18 @@ const handleReplyTo = (reply: any) => {
     })
     return
   }
+  
+  // 检查用户积分
+  const userScore = userStore.userInfo?.score ?? 100
+  if (userScore <= 0) {
+    ElNotification({
+      type: 'error',
+      message: '当前账号无发布权限，积分不足（积分为0时无法发帖、发歌、回复）',
+      duration: 3000,
+    })
+    return
+  }
+  
   replyTo.value = reply
   // 滚动到回复框
   document.querySelector('.reply-input-area')?.scrollIntoView({ behavior: 'smooth' })

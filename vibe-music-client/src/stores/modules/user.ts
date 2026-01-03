@@ -11,6 +11,10 @@ interface UserInfo {
   email?: string
   avatarUrl?: string
   introduction?: string
+  gender?: number | null
+  birth?: string
+  area?: string
+  score?: number
   token?: string
 }
 
@@ -41,6 +45,10 @@ export const UserStore = defineStore('UserStore', {
         email: userInfo.email,
         avatarUrl: userInfo.userAvatar,
         introduction: userInfo.introduction,
+        gender: userInfo.gender,
+        birth: userInfo.birth,
+        area: userInfo.area,
+        score: userInfo.score,
         token: token
       }
       this.isLoggedIn = true
