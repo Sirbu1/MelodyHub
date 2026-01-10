@@ -50,9 +50,9 @@ public class SongVO implements Serializable {
     private String audioUrl;
 
     /**
-     * 喜欢状态
+     * 收藏状态
      * 0：默认
-     * 1：喜欢
+     * 1：收藏
      */
     private Integer likeStatus;
 

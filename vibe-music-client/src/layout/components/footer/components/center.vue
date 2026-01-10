@@ -26,13 +26,13 @@ const {
   seek,
 } = useAudioPlayer()
 
-// 获取当前播放歌曲的喜欢状态
+// 获取当前播放歌曲的收藏状态
 const currentSongLikeStatus = computed(() => {
   const currentTrack = audioStore.trackList[audioStore.currentSongIndex]
   return currentTrack?.likeStatus || 0
 })
 
-// 更新所有相同歌曲的喜欢状态
+// 更新所有相同歌曲的收藏状态
 const updateAllSongLikeStatus = (songId: number, status: number) => {
   // 更新播放列表中的状态
   audioStore.trackList.forEach(track => {
@@ -81,7 +81,7 @@ const updateAllSongLikeStatus = (songId: number, status: number) => {
   }
 }
 
-// 处理喜欢/取消喜欢
+// 处理收藏/取消收藏
 const handleLike = async () => {
   if (!userStore.isLoggedIn) {
     ElMessage.warning('请先登录')
@@ -98,18 +98,18 @@ const handleLike = async () => {
       const res = await collectSong(songId)
       if (res.code === 0) {
         updateAllSongLikeStatus(songId, 1)
-        ElMessage.success('已添加到我的喜欢')
+        ElMessage.success('已添加到我的收藏')
       } else {
-        ElMessage.error(res.message || '添加到我的喜欢失败')
+        ElMessage.error(res.message || '添加到我的收藏失败')
       }
     } else {
       // 取消收藏
       const res = await cancelCollectSong(songId)
       if (res.code === 0) {
         updateAllSongLikeStatus(songId, 0)
-        ElMessage.success('已取消喜欢')
+        ElMessage.success('已取消收藏')
       } else {
-        ElMessage.error(res.message || '取消喜欢失败')
+        ElMessage.error(res.message || '取消收藏失败')
       }
     }
   } catch (error: any) {

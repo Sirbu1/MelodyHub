@@ -6,7 +6,7 @@ import lombok.Getter;
 public enum LikeStatusEnum {
 
     DEFAULT(0, "默认"),
-    LIKE(1, "喜欢");
+    LIKE(1, "收藏");
 
     private final Integer id;
     private final String likeStatus;

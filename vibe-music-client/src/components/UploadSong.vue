@@ -246,11 +246,16 @@
 </template>
 
 <script setup>
-import { ref, reactive } from 'vue'
+import { ref, reactive, onMounted } from 'vue'
 import { uploadOriginalSong } from '@/api/system'
+import { ElNotification } from 'element-plus'
+import { UserStore } from '@/stores/modules/user'
 
 // 定义emit事件
-const emit = defineEmits(['upload-success'])
+const emit = defineEmits(['upload-success', 'show-login'])
+
+// 用户store
+const userStore = UserStore()
 
 // 表单数据
 const form = reactive({
@@ -501,20 +506,27 @@ const handleSubmit = async () => {
   }
 
   // 检查用户登录状态
-  const { UserStore } = await import('@/stores/modules/user')
-  const userStore = UserStore()
-  console.log('User token:', userStore.userInfo?.token)
-  console.log('Is logged in:', userStore.isLoggedIn)
-
   if (!userStore.isLoggedIn || !userStore.userInfo?.token) {
-    alert('请先登录后再上传歌曲')
+    ElNotification({
+      type: 'warning',
+      title: '请先登录',
+      message: '您需要登录后才能上传歌曲',
+      duration: 3000,
+    })
+    // 通知父组件显示登录对话框
+    emit('show-login')
     return
   }
 
   // 检查用户积分
   const userScore = userStore.userInfo?.score ?? 100
   if (userScore <= 0) {
-    alert('当前账号无发布权限，积分不足（积分为0时无法发帖、发歌、回复）')
+    ElNotification({
+      type: 'warning',
+      title: '发布权限不足',
+      message: '当前账号无发布权限，积分不足（积分为0时无法发帖、发歌、回复）',
+      duration: 3000,
+    })
     return
   }
 
@@ -587,6 +599,20 @@ const handleSubmit = async () => {
     uploadProgress.value = 0
   }
 }
+
+// 组件挂载时检查登录状态
+onMounted(() => {
+  if (!userStore.isLoggedIn || !userStore.userInfo?.token) {
+    ElNotification({
+      type: 'warning',
+      title: '请先登录',
+      message: '您需要登录后才能上传歌曲',
+      duration: 3000,
+    })
+    // 通知父组件显示登录对话框
+    emit('show-login')
+  }
+})
 
 // 重置表单
 const resetForm = () => {

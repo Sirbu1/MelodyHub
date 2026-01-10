@@ -64,13 +64,13 @@ export const UserStore = defineStore('UserStore', {
       this.userInfo = {}
       this.isLoggedIn = false
 
-      // 清空所有歌曲的喜欢状态
+      // 清空所有歌曲的收藏状态
       const audioStore = AudioStore()
-      // 清空播放列表中的喜欢状态
+      // 清空播放列表中的收藏状态
       audioStore.trackList.forEach(track => {
         track.likeStatus = 0
       })
-      // 清空当前页面歌曲列表中的喜欢状态
+      // 清空当前页面歌曲列表中的收藏状态
       if (audioStore.currentPageSongs) {
         audioStore.currentPageSongs.forEach(song => {
           song.likeStatus = 0

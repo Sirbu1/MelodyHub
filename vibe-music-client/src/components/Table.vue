@@ -61,7 +61,7 @@ const handlePlay = async (row: Song) => {
   play()
 }
 
-// 更新所有相同歌曲的喜欢状态
+// 更新所有相同歌曲的收藏状态
 const updateAllSongLikeStatus = (songId: number, status: number) => {
   // 更新播放列表中的状态
   audio.trackList.forEach(track => {
@@ -88,7 +88,7 @@ const updateAllSongLikeStatus = (songId: number, status: number) => {
   }
 }
 
-// 处理喜欢/取消喜欢
+// 处理收藏/取消收藏
 const handleLike = async (row: Song, e: Event) => {
   e.stopPropagation() // 阻止事件冒泡
   
@@ -103,18 +103,18 @@ const handleLike = async (row: Song, e: Event) => {
       const res = await collectSong(row.songId)
       if (res.code === 0) {
         updateAllSongLikeStatus(row.songId, 1)
-        ElMessage.success('已添加到我的喜欢')
+        ElMessage.success('已添加到我的收藏')
       } else {
-        ElMessage.error(res.message || '添加到我的喜欢失败')
+        ElMessage.error(res.message || '添加到我的收藏失败')
       }
     } else {
       // 取消收藏
       const res = await cancelCollectSong(row.songId)
       if (res.code === 0) {
         updateAllSongLikeStatus(row.songId, 0)
-        ElMessage.success('已取消喜欢')
+        ElMessage.success('已取消收藏')
       } else {
-        ElMessage.error(res.message || '取消喜欢失败')
+        ElMessage.error(res.message || '取消收藏失败')
       }
     }
   } catch (error: any) {
@@ -161,7 +161,7 @@ const handleCoverError = (event: Event) => {
           <div class="ml-3">标题</div>
           <div class="w-12"></div>
           <div class="ml-1">歌手</div>
-          <div>喜欢</div>
+          <div>收藏</div>
           <div class="ml-7">时长</div>
           <div>下载</div>
         </div>
@@ -201,7 +201,7 @@ const handleCoverError = (event: Event) => {
             <div class="line-clamp-1 w-48">{{ row.artistName }}</div>
           </div>
 
-          <!-- 喜欢 -->
+          <!-- 收藏 -->
           <div class="flex items-center ml-1">
             <el-button text circle @click="handleLike(row, $event)">
               <icon-mdi:cards-heart-outline v-if="!userStore.isLoggedIn || row.likeStatus === 0" class="text-lg" />

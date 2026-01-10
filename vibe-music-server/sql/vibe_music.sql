@@ -239,7 +239,7 @@ INSERT INTO `tb_artist` VALUES (107, 'Aaron Carter', 0, 'http://localhost:9000/v
 INSERT INTO `tb_artist` VALUES (108, 'Taylor Swift', 1, 'http://localhost:9000/vibe-music-data/artists/ae0a613c-0430-478f-b6e8-1d35747fe9a2-blob', '1989-12-13', '美国', 'Taylor Swift（泰勒·斯威夫特），1989年12月13日出生于美国宾夕法尼亚州，是美国著名的女歌手、词曲作者、音乐制作人及演员。自2006年发行首张专辑《Taylor Swift》起，她就以其出色的音乐才华和独特的创作风格吸引了无数粉丝。');
 INSERT INTO `tb_artist` VALUES (109, 'Ariana Grande', 1, 'http://localhost:9000/vibe-music-data/artists/1c6671a4-a3d3-4272-aef8-dbb04358ad24-blob', '1993-06-26', '美国', 'Ariana Grande（爱莉安娜·格兰德），1993年6月26日出生于美国佛罗里达州博卡拉顿市，是美国备受瞩目的流行乐女歌手兼影视演员。2013年，她凭借首张音乐专辑《Yours Truly》一举夺得美国公告牌200强专辑榜冠军，并荣获第41届全美音乐奖“年度最佳新人奖”。');
 INSERT INTO `tb_artist` VALUES (110, 'Bruno Mars', 0, 'http://localhost:9000/vibe-music-data/artists/ad626971-a528-4913-a34c-9b21f8fc6717-blob', '1985-10-08', '美国', 'Bruno Mars（布鲁诺·马尔斯），原名彼得·基恩·埃尔南德斯，是一位多才多艺的美国创作型歌手兼音乐制作人。他的音乐风格独具匠心，舞台表演丰富多彩，复古风格魅力四溢。这位才华横溢的艺人共获得18项格莱美奖提名，并成功斩获两座大奖，全球专辑销量高达60白金，单曲销量更是突破1.3亿，成为继“猫王”之后，五首Billboard Hot 100单曲榜冠军速度最快的男歌手。');
-INSERT INTO `tb_artist` VALUES (111, '寻道树', NULL, 'http://localhost:9000/vibe-music-data/artists/9c7abc83-6834-4424-8183-0faf6b8f94fd-blob', NULL, '中国', '一名95后口琴演奏者，非常感谢你对我作品的喜欢和支持~');
+INSERT INTO `tb_artist` VALUES (111, '寻道树', NULL, 'http://localhost:9000/vibe-music-data/artists/9c7abc83-6834-4424-8183-0faf6b8f94fd-blob', NULL, '中国', '一名95后口琴演奏者，非常感谢你对我作品的收藏和支持~');
 INSERT INTO `tb_artist` VALUES (112, '逃跑计划', 2, 'http://localhost:9000/vibe-music-data/artists/3a9fe545-d03d-4417-8825-e79919a8dc9b-blob', NULL, '中国', '逃跑计划乐队（EscapePlan），中国内地流行摇滚乐队，由主唱毛川、吉他手马晓东、贝斯手刚昂、鼓手王非凡组成。');
 INSERT INTO `tb_artist` VALUES (113, 'Selena Gomez', 1, 'http://localhost:9000/vibe-music-data/artists/fa5ab52b-ef0c-4bed-a9d9-c4f5c14a6714-blob', '1992-07-22', '美国', 'Selena Gomez（赛琳娜·戈麦斯），1992年7月22日出生于美国得克萨斯州，是一位多才多艺的美国女演员、歌手和制片人。2004年，她因参加迪士尼全球才艺计划而脱颖而出，被迪士尼公司相中并签约。随后，她在2007年主演了原创魔幻喜剧《少年魔法师》，并在2008年主演了迪士尼原创电影《灰姑娘之舞动奇迹》。');
 INSERT INTO `tb_artist` VALUES (114, '徐嘉良', 0, 'http://localhost:9000/vibe-music-data/artists/e0bfbb0d-d893-441b-a345-c7b0187b0e6c-blob', NULL, '中国', '徐嘉良，台湾著名唱片制作、编曲、配乐、作曲创作人。曾担任无数台湾、香港艺人的唱片制作编曲人。');
@@ -405,16 +405,16 @@ INSERT INTO `tb_comment` VALUES (172, 127, NULL, 18, '这是最棒的歌单啦�
 INSERT INTO `tb_comment` VALUES (173, 127, NULL, 18, '柔美音乐流泄满室，清新悠扬的旋律，彷佛送来阵阵自然芳香。', '2025-03-25 17:34:58', 1, 1633);
 INSERT INTO `tb_comment` VALUES (174, 126, NULL, 18, '谢谢大家，今天很荣幸拿到与Taylor Swift、Billie Eillish、Ariana Grande、Post Malone、Olivia Rodrigo等前辈一样多的格莱美，将来我会继续努力深耕音乐作品以更好地与这份荣誉相配。', '2025-03-25 17:37:42', 1, 2);
 INSERT INTO `tb_comment` VALUES (175, 127, 340, NULL, '我觉得这首歌很好听啊(｡•ˇ‸ˇ•｡)而且和打雷的还是有本质区别的啊毕竟打雷的很多歌调子都不会这么明显的(｡•ˇ‸ˇ•｡)而且声音的话霉的声音更澈一点打雷的很朦胧qaaaaq', '2025-03-25 17:45:49', 0, 6);
-INSERT INTO `tb_comment` VALUES (176, 127, 340, NULL, 'Taylor Swift是你今年最喜欢的歌手\nTA的歌你今年一共听了7503次\n1.《Love Story》511次\n2.《Enchanted》495次\n3.《Style》492次\n5.《You Need To Calm Dow...》401次\n6《Wildest Dreams》369次', '2025-03-25 17:46:19', 0, 0);
+INSERT INTO `tb_comment` VALUES (176, 127, 340, NULL, 'Taylor Swift是你今年最收藏的歌手\nTA的歌你今年一共听了7503次\n1.《Love Story》511次\n2.《Enchanted》495次\n3.《Style》492次\n5.《You Need To Calm Dow...》401次\n6《Wildest Dreams》369次', '2025-03-25 17:46:19', 0, 0);
 INSERT INTO `tb_comment` VALUES (177, 127, 340, NULL, '野梦就是上个世纪好莱坞黄金年代的感觉，风华绝代的女明星和英俊潇洒的男明星，在辽阔的非洲草原相爱，大自然的壮阔让爱情更加恢宏、狂野，给人一种Love that burns to death的错觉。', '2025-03-25 17:46:42', 0, 0);
 INSERT INTO `tb_comment` VALUES (179, 127, 340, NULL, '感觉自己很久没说出过这么强硬的祈使句了，Say you\'ll remember me.听了太多如何收敛自己的情感，久了好像丧失了热烈地去爱的能力。\nSay you\'ll see me again，\nEven if it\'s just in your wildest dreams.\n这种表达真的很酷，说你爱我，不要等你爱我。', '2025-03-25 17:47:06', 0, 3977);
 INSERT INTO `tb_comment` VALUES (180, 126, 340, NULL, '红唇坐在镜前化妆的，是艾娃加德纳。荒野中的一吻，是梅里尔斯特里普。披着黄纱迎风飞翔，是琼芳登。床前褪下褐色的丝绸，是丽塔海华丝。带着头巾墨镜坐在滑翔机上吹风，是英格丽褒曼。聚光灯下走上红毯，是伊丽莎白泰勒。隔着车窗看雨的，是玛丽昂歌迪亚。一个好莱坞式复古MV里独占鳌头的，是霉霉。', '2025-03-25 17:47:24', 0, 986);
-INSERT INTO `tb_comment` VALUES (181, 126, 340, NULL, 'Wildest Dreams有着与霉霉许多的其他歌不一样的感觉，她在MV里拍出了好莱坞式的浪漫，至今还是许多粉丝心中最爱的MV。在释出重录的时候我真的很感动，这首歌的歌词写出了心中对爱情的痴迷，鼓点采样自她的心跳，配以婉转的旋律，是我最喜欢她的一首歌。', '2025-03-25 17:47:43', 0, 66);
+INSERT INTO `tb_comment` VALUES (181, 126, 340, NULL, 'Wildest Dreams有着与霉霉许多的其他歌不一样的感觉，她在MV里拍出了好莱坞式的浪漫，至今还是许多粉丝心中最爱的MV。在释出重录的时候我真的很感动，这首歌的歌词写出了心中对爱情的痴迷，鼓点采样自她的心跳，配以婉转的旋律，是我最收藏她的一首歌。', '2025-03-25 17:47:43', 0, 66);
 INSERT INTO `tb_comment` VALUES (186, 126, 34, NULL, 'like it', '2025-04-07 18:03:38', 0, 0);
 INSERT INTO `tb_comment` VALUES (188, 126, 34, NULL, 'excellent', '2025-04-07 18:17:37', 0, 0);
 INSERT INTO `tb_comment` VALUES (190, 126, 346, NULL, '111', '2025-04-15 21:44:39', 0, 0);
 INSERT INTO `tb_comment` VALUES (191, 118, 359, NULL, 'The Chainsmokers联手Phoebe Ryan新单All We Know已上线，成员Drew再次献声，而且这次帮帮唱小伙伴还是Phoebe Ryan，新歌依旧洗脑好听，看来又是一首大火的歌~', '2025-04-18 20:36:15', 0, 77116);
-INSERT INTO `tb_comment` VALUES (192, 127, 359, NULL, '就是莫名好喜欢\"From Chicago to the coast.\"这一句啊，从芝加哥到西海岸的尽头，想想就觉得很美好', '2025-04-18 20:37:51', 0, 9025);
+INSERT INTO `tb_comment` VALUES (192, 127, 359, NULL, '就是莫名好收藏\"From Chicago to the coast.\"这一句啊，从芝加哥到西海岸的尽头，想想就觉得很美好', '2025-04-18 20:37:51', 0, 9025);
 
 -- ----------------------------
 -- Table structure for tb_feedback
@@ -464,12 +464,12 @@ INSERT INTO `tb_feedback` VALUES (43, 44, '这是一个随机反馈 58', '2025-0
 INSERT INTO `tb_feedback` VALUES (44, 41, '这是一个随机反馈 140', '2025-01-26 14:54:51');
 INSERT INTO `tb_feedback` VALUES (47, 104, '这是一个随机反馈 700', '2025-01-26 14:54:51');
 INSERT INTO `tb_feedback` VALUES (53, 107, '这是一个随机反馈 402', '2025-01-26 14:55:14');
-INSERT INTO `tb_feedback` VALUES (59, 126, '哇，今天的推荐太棒了！发现了好几首我超喜欢的冷门歌曲！', '2025-04-03 15:47:45');
+INSERT INTO `tb_feedback` VALUES (59, 126, '哇，今天的推荐太棒了！发现了好几首我超收藏的冷门歌曲！', '2025-04-03 15:47:45');
 INSERT INTO `tb_feedback` VALUES (60, 30, '感觉推荐的音乐越来越符合我的口味了，继续保持！', '2025-04-03 15:48:45');
 INSERT INTO `tb_feedback` VALUES (61, 27, '搜索功能有点不太好用，输入歌手名字经常找不到对应的歌曲。', '2025-04-03 15:48:54');
 INSERT INTO `tb_feedback` VALUES (62, 29, '希望可以增加一个‘不再推荐这个歌手/歌曲’的功能。', '2025-04-03 15:49:03');
 INSERT INTO `tb_feedback` VALUES (63, 30, '我经常使用你们的歌单功能，但是感觉歌单的分类和管理还不够灵活。希望能增加自定义标签的功能，并且可以按照创建时间、歌曲数量等进行排序，方便我更好地整理自己的音乐库。', '2025-04-03 15:49:10');
-INSERT INTO `tb_feedback` VALUES (64, 31, '很喜欢每日推荐歌单，每天都有新的惊喜。', '2025-04-03 15:49:20');
+INSERT INTO `tb_feedback` VALUES (64, 31, '很收藏每日推荐歌单，每天都有新的惊喜。', '2025-04-03 15:49:20');
 INSERT INTO `tb_feedback` VALUES (65, 27, '总的来说，这个音乐推荐网站还是非常不错的，为我发现了许多新的音乐。希望你们能持续优化和改进，推出更多有趣和实用的功能，成为我日常听歌的首选平台。', '2025-04-03 15:49:29');
 INSERT INTO `tb_feedback` VALUES (66, 107, '希望可以支持更多音乐平台导入歌单。', '2025-04-03 15:49:41');
 INSERT INTO `tb_feedback` VALUES (67, 28, '希望可以增加歌词显示功能。', '2025-04-03 15:49:57');
@@ -477,7 +477,7 @@ INSERT INTO `tb_feedback` VALUES (68, 35, '整体来说还不错，会继续使�
 INSERT INTO `tb_feedback` VALUES (69, 80, '界面设计很简洁，用起来很舒服。', '2025-04-03 15:51:26');
 INSERT INTO `tb_feedback` VALUES (70, 55, '我希望网站能提供更详细的歌曲和专辑信息，比如歌曲的创作背景、制作团队、所属专辑的评价等等。这能帮助我们更深入地了解音乐背后的故事，增加听歌的乐趣。', '2025-04-03 15:51:44');
 INSERT INTO `tb_feedback` VALUES (71, 126, '能不能增加一些排行榜单，比如不同风格的热门歌曲？', '2025-04-03 15:51:59');
-INSERT INTO `tb_feedback` VALUES (72, 66, '我非常喜欢这个网站的整体设计风格，简约大气，操作起来也很流畅。特别是夜间模式，对眼睛非常友好。如果能在播放界面增加一些可视化的效果，比如动态频谱或者专辑封面动画，就更完美了。', '2025-04-03 15:52:09');
+INSERT INTO `tb_feedback` VALUES (72, 66, '我非常收藏这个网站的整体设计风格，简约大气，操作起来也很流畅。特别是夜间模式，对眼睛非常友好。如果能在播放界面增加一些可视化的效果，比如动态频谱或者专辑封面动画，就更完美了。', '2025-04-03 15:52:09');
 
 -- ----------------------------
 -- Table structure for tb_genre
@@ -1210,7 +1210,7 @@ INSERT INTO `tb_playlist` VALUES (4, '国风纯音乐精选集', 'http://localho
 INSERT INTO `tb_playlist` VALUES (5, '【电子】节奏感电子音乐', 'http://localhost:9000/vibe-music-data/playlists/4b6d1894-4ccc-4d3c-97ed-aac14e88a608-blob', '各种风格都汇集在一起了，只挑精选,各种史诗级别的震撼你的心灵。', '电子');
 INSERT INTO `tb_playlist` VALUES (6, 'Afro/Dancehall【非洲×牙买加狂热节拍】', 'http://localhost:9000/vibe-music-data/playlists/6a84926a-48af-4370-aaaa-bb52a8f539d4-blob', '往下翻翻有更多好听的音乐哦 有很多风格，都放在这个歌单里了 近几年收集的dancehall和afro的舞蹈音乐 持续更新中……', '非洲节拍');
 INSERT INTO `tb_playlist` VALUES (7, '节奏控 | 嘻哈 说唱', 'http://localhost:9000/vibe-music-data/playlists/97dfcac8-504c-4f0d-930d-b80e41f25316-blob', 'Rap is a black slang word, which is equivalent to \"talking\". In Chinese, it means rap, which is a special form of singing with rhy...', '嘻哈说唱');
-INSERT INTO `tb_playlist` VALUES (8, '【韩流】韩国流行热门歌曲', 'http://localhost:9000/vibe-music-data/playlists/022ae029-ba8e-4dab-b2fc-36a85c271512-blob', '韩国合唱团数不胜数 有些虽然解散 但仍给我们留下了很多美好回忆 有些刚刚出道 正向着“一位”努力前进 有些天团正站在世界的舞台 散发着无穷的魅力 不论你什么职业 任何年龄 不论你喜欢什么团队 深深地...', '韩国流行');
+INSERT INTO `tb_playlist` VALUES (8, '【韩流】韩国流行热门歌曲', 'http://localhost:9000/vibe-music-data/playlists/022ae029-ba8e-4dab-b2fc-36a85c271512-blob', '韩国合唱团数不胜数 有些虽然解散 但仍给我们留下了很多美好回忆 有些刚刚出道 正向着“一位”努力前进 有些天团正站在世界的舞台 散发着无穷的魅力 不论你什么职业 任何年龄 不论你收藏什么团队 深深地...', '韩国流行');
 INSERT INTO `tb_playlist` VALUES (9, '世界级古典钢琴曲音乐珍藏', 'http://localhost:9000/vibe-music-data/playlists/6959d662-dc4b-4063-9df1-36ba0c19255a-blob', '钢琴，乐器之皇，钢琴文化发展至今，已经有不计其数的脍炙人口的钢琴曲流传下来，其中一些流传至今，仍是社会上流人士的...', '古典');
 INSERT INTO `tb_playlist` VALUES (10, '欧美氛围R&B ｜ 听节奏布鲁斯才是正经事', 'http://localhost:9000/vibe-music-data/playlists/8c74ab2f-9053-4ffc-b15a-169c2234d5a3-blob', '节奏布鲁斯（英语：Rhythm and Blues，简称：R&B或RnB，中国台湾、中国港澳、马新称作节奏蓝调 ），又称节奏怨曲。', '节奏布鲁斯');
 INSERT INTO `tb_playlist` VALUES (11, '那些只听前奏就会上瘾的华语流行歌曲', 'http://localhost:9000/vibe-music-data/playlists/c2d1ebca-5af9-4d3f-947d-c67ce8193712-blob', '趁你现在还有时间 仅你自己最大的努力 努力做成你最想做的那件事 成为你最想成为的那种人 过着你最想过的那种生活 ', '华语流行');
@@ -1955,7 +1955,7 @@ CREATE TABLE `tb_song`  (
 INSERT INTO `tb_song` VALUES (2, 107, 'Fool\'s Gold', 'LøVë', NULL, '196.98', '欧美流行', 'http://localhost:9000/vibe-music-data/songCovers/645b6c4c-c53c-4bc7-9d68-aee20fde416f-blob', 'http://localhost:9000/vibe-music-data/songs/f9580a5c-39a6-4950-8bc0-18d8a8e3612c-Aaron Carter - Fool\'s Gold.mp3', '2017-02-10');
 INSERT INTO `tb_song` VALUES (3, 107, 'Sooner Or Later', 'LøVë', NULL, '212.82', '欧美流行', 'http://localhost:9000/vibe-music-data/songCovers/e92dce27-c5f5-463b-bdc4-d6e864f09942-blob', 'http://localhost:9000/vibe-music-data/songs/e606cbc7-d919-42d1-90bb-56738b8208cf-Aaron Carter - Sooner Or Later.mp3', '2017-02-10');
 INSERT INTO `tb_song` VALUES (4, 122, 'Lost Stars', 'V', NULL, '266.77', '欧美流行,摇滚', 'http://localhost:9000/vibe-music-data/songCovers/642adf1e-458a-4033-af5e-a948ef2909f2-blob', 'http://localhost:9000/vibe-music-data/songs/219dadbf-7ac8-4978-8aff-4db87c256eab-Adam Levine - Lost Stars.mp3', '2014-09-02');
-INSERT INTO `tb_song` VALUES (5, 28, '晴天的周末在去学校补课的路上遇见了喜欢的人', '致青春的你', NULL, '211.35', '轻音乐', 'http://localhost:9000/vibe-music-data/songCovers/e34d43df-1b6b-4f77-b2cc-9983a9af7d27-blob', 'http://localhost:9000/vibe-music-data/songs/6dfcad85-7ca3-43c1-8584-d12fd9f63e50-AniFace - 晴天的周末在去学校补课的路上遇见了喜欢的人.mp3', '2017-05-08');
+INSERT INTO `tb_song` VALUES (5, 28, '晴天的周末在去学校补课的路上遇见了收藏的人', '致青春的你', NULL, '211.35', '轻音乐', 'http://localhost:9000/vibe-music-data/songCovers/e34d43df-1b6b-4f77-b2cc-9983a9af7d27-blob', 'http://localhost:9000/vibe-music-data/songs/6dfcad85-7ca3-43c1-8584-d12fd9f63e50-AniFace - 晴天的周末在去学校补课的路上遇见了收藏的人.mp3', '2017-05-08');
 INSERT INTO `tb_song` VALUES (6, 109, '34+35', 'Positions (Deluxe', NULL, '173.00', '欧美流行,节奏布鲁斯', 'http://localhost:9000/vibe-music-data/songCovers/1542b3ef-97c1-43bc-ba70-48c4fc68d717-blob', 'http://localhost:9000/vibe-music-data/songs/25e62a66-1355-464a-b3cb-6617005c0d24-Ariana Grande - 34+35.mp3', '2021-02-19');
 INSERT INTO `tb_song` VALUES (7, 109, '7 rings', '7 rings', NULL, '178.71', '欧美流行,节奏布鲁斯', 'http://localhost:9000/vibe-music-data/songCovers/580e31fe-857a-4bb3-a0db-b2d520032d7b-blob', 'http://localhost:9000/vibe-music-data/songs/816993b4-25a1-48f1-aeec-b2132baab002-Ariana Grande - 7 rings.mp3', '2019-02-08');
 INSERT INTO `tb_song` VALUES (8, 109, 'bad idea', 'thank u, next', NULL, '266.77', '欧美流行,节奏布鲁斯', 'http://localhost:9000/vibe-music-data/songCovers/4889a18e-11dd-48e1-880b-cfa2966155b7-blob', 'http://localhost:9000/vibe-music-data/songs/237599b5-f2c2-46b4-8147-af9abd6659ce-Ariana Grande - bad idea.mp3', '2018-11-03');
@@ -1999,7 +1999,7 @@ INSERT INTO `tb_song` VALUES (45, 38, '交织千个心', 'Beyond 怀旧经典金
 INSERT INTO `tb_song` VALUES (46, 38, '光辉岁月', 'Beyond 怀旧经典金曲 Vol. 1', NULL, '297.56', '粤语流行,摇滚', 'http://localhost:9000/vibe-music-data/songCovers/634d65e4-2035-4f73-9075-3dfe484f20cb-blob', 'http://localhost:9000/vibe-music-data/songs/64ae48fd-7115-4eca-85d5-075a749d87db-Beyond - 光辉岁月.mp3', '2021-06-21');
 INSERT INTO `tb_song` VALUES (47, 38, '再见理想', 'Beyond 怀旧经典金曲 Vol. 1', NULL, '293.46', '粤语流行,摇滚', 'http://localhost:9000/vibe-music-data/songCovers/634d65e4-2035-4f73-9075-3dfe484f20cb-blob', 'http://localhost:9000/vibe-music-data/songs/442a496d-45f4-48bd-9107-a92a52b9c680-Beyond - 再见理想.mp3', '2021-06-21');
 INSERT INTO `tb_song` VALUES (48, 38, '冷雨夜', 'Beyond 怀旧经典金曲 Vol. 2', NULL, '299.62', '粤语流行,摇滚', 'http://localhost:9000/vibe-music-data/songCovers/b08d2e0b-7a78-4847-b633-2bf334849f22-blob', 'http://localhost:9000/vibe-music-data/songs/535e1da7-c92d-4b95-ba20-7845e00fd9a8-Beyond - 冷雨夜.mp3', '2021-06-30');
-INSERT INTO `tb_song` VALUES (49, 38, '喜欢你', 'Beyond 怀旧经典金曲 Vol. 2', NULL, '272.93', '粤语流行,摇滚', 'http://localhost:9000/vibe-music-data/songCovers/b08d2e0b-7a78-4847-b633-2bf334849f22-blob', 'http://localhost:9000/vibe-music-data/songs/f7980cae-9463-4667-b202-2898312a35f0-Beyond - 喜欢你.mp3', '2021-06-30');
+INSERT INTO `tb_song` VALUES (49, 38, '收藏你', 'Beyond 怀旧经典金曲 Vol. 2', NULL, '272.93', '粤语流行,摇滚', 'http://localhost:9000/vibe-music-data/songCovers/b08d2e0b-7a78-4847-b633-2bf334849f22-blob', 'http://localhost:9000/vibe-music-data/songs/f7980cae-9463-4667-b202-2898312a35f0-Beyond - 收藏你.mp3', '2021-06-30');
 INSERT INTO `tb_song` VALUES (50, 38, '旧日的足迹', 'Beyond 怀旧经典金曲 Vol. 1', NULL, '322.2', '粤语流行,摇滚', 'http://localhost:9000/vibe-music-data/songCovers/634d65e4-2035-4f73-9075-3dfe484f20cb-blob', 'http://localhost:9000/vibe-music-data/songs/d068a5cd-0426-43bd-ab65-ab007abcfe6a-Beyond - 旧日的足迹.mp3', '2021-06-21');
 INSERT INTO `tb_song` VALUES (51, 38, '灰色轨迹', 'Beyond 怀旧经典金曲 Vol. 1', NULL, '326.3', '粤语流行,摇滚', 'http://localhost:9000/vibe-music-data/songCovers/634d65e4-2035-4f73-9075-3dfe484f20cb-blob', 'http://localhost:9000/vibe-music-data/songs/ba077079-fffb-41a1-beee-d0b00f4dc1b5-Beyond - 灰色轨迹.mp3', '2021-06-21');
 INSERT INTO `tb_song` VALUES (52, 38, '真的爱你', 'Beyond 怀旧经典金曲 Vol. 2', NULL, '274.98', '粤语流行,摇滚', 'http://localhost:9000/vibe-music-data/songCovers/b08d2e0b-7a78-4847-b633-2bf334849f22-blob', 'http://localhost:9000/vibe-music-data/songs/067b13a2-a7c7-404e-b6e3-d5aac80910bf-Beyond - 真的爱你.mp3', '2021-06-30');
@@ -2088,7 +2088,7 @@ INSERT INTO `tb_song` VALUES (135, 18, '你把我灌醉', 'The Best of G.E.M. 20
 INSERT INTO `tb_song` VALUES (136, 18, '倒数', '另一个童话', NULL, '229.6', '华语流行', 'http://localhost:9000/vibe-music-data/songCovers/cfbd3eac-3b4c-4af5-bc61-38ee52d72e89-blob', 'http://localhost:9000/vibe-music-data/songs/2bb762a1-1d14-4c18-bd70-357d650754ee-G.E.M.邓紫棋 - 倒数.mp3', '2018-08-16');
 INSERT INTO `tb_song` VALUES (137, 18, '光年之外', '光年之外', NULL, '235.77', '华语流行,原声带', 'http://localhost:9000/vibe-music-data/songCovers/8f20dd0c-f102-4d19-8192-35f6600893a5-blob', 'http://localhost:9000/vibe-music-data/songs/22fe07c2-52f2-4581-aed0-2eb6856120fa-G.E.M.邓紫棋 - 光年之外.mp3', '2016-12-30');
 INSERT INTO `tb_song` VALUES (138, 18, '句号', '摩天动物园', NULL, '235.98', '华语流行', 'http://localhost:9000/vibe-music-data/songCovers/ed7f43af-44a9-448e-be04-fd41da8b7986-blob', 'http://localhost:9000/vibe-music-data/songs/92fdb8b5-8161-4000-9d30-4bcd344c74f4-G.E.M.邓紫棋 - 句号.mp3', '2019-12-14');
-INSERT INTO `tb_song` VALUES (139, 18, '喜欢你', '喜欢你', NULL, '238.04', '粤语流行', 'http://localhost:9000/vibe-music-data/songCovers/fa76d9f1-08c7-4e3f-a6a1-79a32971d391-blob', 'http://localhost:9000/vibe-music-data/songs/86953551-5cf8-431b-9f86-c149edcdb9b1-G.E.M.邓紫棋 - 喜欢你.mp3', '2014-08-15');
+INSERT INTO `tb_song` VALUES (139, 18, '收藏你', '收藏你', NULL, '238.04', '粤语流行', 'http://localhost:9000/vibe-music-data/songCovers/fa76d9f1-08c7-4e3f-a6a1-79a32971d391-blob', 'http://localhost:9000/vibe-music-data/songs/86953551-5cf8-431b-9f86-c149edcdb9b1-G.E.M.邓紫棋 - 收藏你.mp3', '2014-08-15');
 INSERT INTO `tb_song` VALUES (140, 18, '多远都要在一起', '新的心跳', NULL, '215.46', '华语流行', 'http://localhost:9000/vibe-music-data/songCovers/23232633-92dc-4831-9025-64dd9bc7382b-blob', 'http://localhost:9000/vibe-music-data/songs/dae6088c-2e3d-46ad-a2dc-6dd5db5cd774-G.E.M.邓紫棋 - 多远都要在一起.mp3', '2015-11-06');
 INSERT INTO `tb_song` VALUES (141, 18, '天空没有极限', '启示录', NULL, '278.45', '华语流行', 'http://localhost:9000/vibe-music-data/songCovers/62199b04-4ba7-4149-82a3-bf1498a302f3-blob', 'http://localhost:9000/vibe-music-data/songs/090a7e16-4cd4-4d3a-b7c3-b9fa3f66e21d-G.E.M.邓紫棋 - 天空没有极限.mp3', '2022-09-23');
 INSERT INTO `tb_song` VALUES (142, 18, '我的秘密', 'My Secret', NULL, '252.41', '华语流行', 'http://localhost:9000/vibe-music-data/songCovers/c231d6d3-4fd3-4d6a-8dd5-af6006c4b987-blob', 'http://localhost:9000/vibe-music-data/songs/cc3bc25f-23bb-4bbe-8777-18ccda9f8a1c-G.E.M.邓紫棋 - 我的秘密.mp3', '2010-10-29');

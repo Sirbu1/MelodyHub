@@ -15,7 +15,7 @@ const currentPage = ref(1)
 const pageSize = ref(10)
 
 const playlist = ref({
-    name: '我喜欢的音乐',
+    name: '我收藏的音乐',
     coverImgUrl: coverImg,
     trackCount: 0,
     tags: []

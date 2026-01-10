@@ -42,7 +42,7 @@ export const MenuData = [
   {
     title: '我的',
     children: [
-      { title: '喜欢', icon: 'ri:heart-line', router: '/like' },
+      { title: '收藏', icon: 'ri:heart-line', router: '/like' },
       {
         title: '个人中心',
         icon: 'mi:user',

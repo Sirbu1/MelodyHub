@@ -401,7 +401,7 @@ const handleDelete = async () => {
               </el-button>
             </template>
           </el-input>
-          <div class="text-xs text-muted-foreground mt-1">积分为0时无法发帖、发歌、回复</div>
+          <div class="text-xs text-muted-foreground mt-1">违规发布一次扣10分，积分为0时无法发帖、发歌、回复</div>
         </el-form-item>
       </div>
 

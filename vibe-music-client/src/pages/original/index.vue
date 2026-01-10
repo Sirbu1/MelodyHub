@@ -2,7 +2,7 @@
   <div class="original-container">
     <!-- 上传歌曲组件 -->
     <div class="upload-section">
-      <UploadSong @upload-success="handleUploadSuccess" />
+      <UploadSong @upload-success="handleUploadSuccess" @show-login="handleShowLogin" />
     </div>
 
     <!-- 登录提示 -->
@@ -30,6 +30,11 @@ onMounted(() => {
 const handleUploadSuccess = () => {
   // 上传成功后可以显示提示信息，但不切换页面
   console.log('上传成功')
+}
+
+// 处理显示登录对话框
+const handleShowLogin = () => {
+  authVisible.value = true
 }
 </script>
 
