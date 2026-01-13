@@ -1,0 +1,398 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<mxfile host="app.diagrams.net" agent="Mozilla/5.0" version="29.0.3">
+  <diagram name="音乐社交平台ER图" id="music-social-er-diagram">
+    <mxGraphModel dx="1400" dy="1000" grid="1" gridSize="10" guides="1" tooltips="1" connect="1" arrows="1" fold="1" page="1" pageScale="1" pageWidth="1400" pageHeight="1000" math="0" shadow="0">
+      <root>
+        <mxCell id="0" />
+        <mxCell id="1" parent="0" />
+        
+        <!-- ========== 实体：BaseUser（基础用户） ========== -->
+        <mxCell id="BaseUser" value="BaseUser&#xa;基础用户" style="shape=rectangle;fillColor=#fff2cc;strokeColor=#d6b656;strokeWidth=2;align=center;verticalAlign=middle;fontSize=16;rounded=0;shadow=1;fontStyle=1" vertex="1" parent="1">
+          <mxGeometry x="100" y="400" width="140" height="70" as="geometry" />
+        </mxCell>
+        <mxCell id="BaseUser_userId" value="userId&#xa;(PK)" style="shape=ellipse;fillColor=#d4e3f7;strokeColor=#6c8ebf;strokeWidth=1;align=center;verticalAlign=middle;fontSize=12;shadow=1;fontStyle=1" vertex="1" parent="1">
+          <mxGeometry x="60" y="320" width="80" height="50" as="geometry" />
+        </mxCell>
+        <mxCell id="BaseUser_username" value="username" style="shape=ellipse;fillColor=#d4e3f7;strokeColor=#6c8ebf;strokeWidth=1;align=center;verticalAlign=middle;fontSize=12;shadow=1;" vertex="1" parent="1">
+          <mxGeometry x="160" y="320" width="80" height="50" as="geometry" />
+        </mxCell>
+        <mxCell id="BaseUser_password" value="password" style="shape=ellipse;fillColor=#d4e3f7;strokeColor=#6c8ebf;strokeWidth=1;align=center;verticalAlign=middle;fontSize=12;shadow=1;" vertex="1" parent="1">
+          <mxGeometry x="260" y="320" width="80" height="50" as="geometry" />
+        </mxCell>
+        <mxCell id="BaseUser_status" value="status" style="shape=ellipse;fillColor=#d4e3f7;strokeColor=#6c8ebf;strokeWidth=1;align=center;verticalAlign=middle;fontSize=12;shadow=1;" vertex="1" parent="1">
+          <mxGeometry x="60" y="500" width="80" height="50" as="geometry" />
+        </mxCell>
+        <mxCell id="line_userId" value="" style="endArrow=none;html=1;rounded=0;entryX=0.25;entryY=0;entryDx=0;entryDy=0;exitX=0.25;exitY=1;exitDx=0;exitDy=0;strokeColor=#616161;strokeWidth=1;" edge="1" parent="1" source="BaseUser" target="BaseUser_userId">
+          <mxGeometry width="50" height="50" relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="line_username" value="" style="endArrow=none;html=1;rounded=0;entryX=0.5;entryY=0;entryDx=0;entryDy=0;exitX=0.5;exitY=1;exitDx=0;exitDy=0;strokeColor=#616161;strokeWidth=1;" edge="1" parent="1" source="BaseUser" target="BaseUser_username">
+          <mxGeometry width="50" height="50" relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="line_password" value="" style="endArrow=none;html=1;rounded=0;entryX=0.75;entryY=0;entryDx=0;entryDy=0;exitX=0.75;exitY=1;exitDx=0;exitDy=0;strokeColor=#616161;strokeWidth=1;" edge="1" parent="1" source="BaseUser" target="BaseUser_password">
+          <mxGeometry width="50" height="50" relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="line_status" value="" style="endArrow=none;html=1;rounded=0;entryX=0.25;entryY=1;entryDx=0;entryDy=0;exitX=0.25;exitY=0;exitDx=0;exitDy=0;strokeColor=#616161;strokeWidth=1;" edge="1" parent="1" source="BaseUser" target="BaseUser_status">
+          <mxGeometry width="50" height="50" relative="1" as="geometry" />
+        </mxCell>
+
+        <!-- ========== 实体：MusicEnthusiast（音乐爱好者） ========== -->
+        <mxCell id="MusicEnthusiast" value="MusicEnthusiast&#xa;音乐爱好者" style="shape=rectangle;fillColor=#fff2cc;strokeColor=#d6b656;strokeWidth=2;align=center;verticalAlign=middle;fontSize=16;rounded=0;shadow=1;fontStyle=1" vertex="1" parent="1">
+          <mxGeometry x="100" y="200" width="140" height="70" as="geometry" />
+        </mxCell>
+        <mxCell id="MusicEnthusiast_userId" value="userId&#xa;(FK)" style="shape=ellipse;fillColor=#d4e3f7;strokeColor=#6c8ebf;strokeWidth=1;align=center;verticalAlign=middle;fontSize=12;shadow=1;fontStyle=1" vertex="1" parent="1">
+          <mxGeometry x="60" y="120" width="80" height="50" as="geometry" />
+        </mxCell>
+        <mxCell id="MusicEnthusiast_collectListId" value="collectListId" style="shape=ellipse;fillColor=#d4e3f7;strokeColor=#6c8ebf;strokeWidth=1;align=center;verticalAlign=middle;fontSize=12;shadow=1;" vertex="1" parent="1">
+          <mxGeometry x="160" y="120" width="80" height="50" as="geometry" />
+        </mxCell>
+        <mxCell id="line_enthusiast_userId" value="" style="endArrow=none;html=1;rounded=0;entryX=0.25;entryY=0;entryDx=0;entryDy=0;exitX=0.25;exitY=1;exitDx=0;exitDy=0;strokeColor=#616161;strokeWidth=1;" edge="1" parent="1" source="MusicEnthusiast" target="MusicEnthusiast_userId">
+          <mxGeometry width="50" height="50" relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="line_enthusiast_collectListId" value="" style="endArrow=none;html=1;rounded=0;entryX=0.75;entryY=0;entryDx=0;entryDy=0;exitX=0.75;exitY=1;exitDx=0;exitDy=0;strokeColor=#616161;strokeWidth=1;" edge="1" parent="1" source="MusicEnthusiast" target="MusicEnthusiast_collectListId">
+          <mxGeometry width="50" height="50" relative="1" as="geometry" />
+        </mxCell>
+
+        <!-- ========== 实体：MusicCreator（音乐创作者） ========== -->
+        <mxCell id="MusicCreator" value="MusicCreator&#xa;音乐创作者" style="shape=rectangle;fillColor=#fff2cc;strokeColor=#d6b656;strokeWidth=2;align=center;verticalAlign=middle;fontSize=16;rounded=0;shadow=1;fontStyle=1" vertex="1" parent="1">
+          <mxGeometry x="400" y="200" width="140" height="70" as="geometry" />
+        </mxCell>
+        <mxCell id="MusicCreator_userId" value="userId&#xa;(FK)" style="shape=ellipse;fillColor=#d4e3f7;strokeColor=#6c8ebf;strokeWidth=1;align=center;verticalAlign=middle;fontSize=12;shadow=1;fontStyle=1" vertex="1" parent="1">
+          <mxGeometry x="360" y="120" width="80" height="50" as="geometry" />
+        </mxCell>
+        <mxCell id="MusicCreator_workListId" value="workListId" style="shape=ellipse;fillColor=#d4e3f7;strokeColor=#6c8ebf;strokeWidth=1;align=center;verticalAlign=middle;fontSize=12;shadow=1;" vertex="1" parent="1">
+          <mxGeometry x="460" y="120" width="80" height="50" as="geometry" />
+        </mxCell>
+        <mxCell id="line_creator_userId" value="" style="endArrow=none;html=1;rounded=0;entryX=0.25;entryY=0;entryDx=0;entryDy=0;exitX=0.25;exitY=1;exitDx=0;exitDy=0;strokeColor=#616161;strokeWidth=1;" edge="1" parent="1" source="MusicCreator" target="MusicCreator_userId">
+          <mxGeometry width="50" height="50" relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="line_creator_workListId" value="" style="endArrow=none;html=1;rounded=0;entryX=0.75;entryY=0;entryDx=0;entryDy=0;exitX=0.75;exitY=1;exitDx=0;exitDy=0;strokeColor=#616161;strokeWidth=1;" edge="1" parent="1" source="MusicCreator" target="MusicCreator_workListId">
+          <mxGeometry width="50" height="50" relative="1" as="geometry" />
+        </mxCell>
+
+        <!-- ========== 实体：MusicRequirementPublisher（需求发布者） ========== -->
+        <mxCell id="MusicRequirementPublisher" value="MusicRequirementPublisher&#xa;需求发布者" style="shape=rectangle;fillColor=#fff2cc;strokeColor=#d6b656;strokeWidth=2;align=center;verticalAlign=middle;fontSize=16;rounded=0;shadow=1;fontStyle=1" vertex="1" parent="1">
+          <mxGeometry x="700" y="200" width="140" height="70" as="geometry" />
+        </mxCell>
+        <mxCell id="MusicRequirementPublisher_userId" value="userId&#xa;(FK)" style="shape=ellipse;fillColor=#d4e3f7;strokeColor=#6c8ebf;strokeWidth=1;align=center;verticalAlign=middle;fontSize=12;shadow=1;fontStyle=1" vertex="1" parent="1">
+          <mxGeometry x="720" y="120" width="80" height="50" as="geometry" />
+        </mxCell>
+        <mxCell id="line_publisher_userId" value="" style="endArrow=none;html=1;rounded=0;entryX=0.5;entryY=0;entryDx=0;entryDy=0;exitX=0.5;exitY=1;exitDx=0;exitDy=0;strokeColor=#616161;strokeWidth=1;" edge="1" parent="1" source="MusicRequirementPublisher" target="MusicRequirementPublisher_userId">
+          <mxGeometry width="50" height="50" relative="1" as="geometry" />
+        </mxCell>
+
+        <!-- ========== 实体：MusicServiceTaker（服务承接者） ========== -->
+        <mxCell id="MusicServiceTaker" value="MusicServiceTaker&#xa;服务承接者" style="shape=rectangle;fillColor=#fff2cc;strokeColor=#d6b656;strokeWidth=2;align=center;verticalAlign=middle;fontSize=16;rounded=0;shadow=1;fontStyle=1" vertex="1" parent="1">
+          <mxGeometry x="1000" y="200" width="140" height="70" as="geometry" />
+        </mxCell>
+        <mxCell id="MusicServiceTaker_userId" value="userId&#xa;(FK)" style="shape=ellipse;fillColor=#d4e3f7;strokeColor=#6c8ebf;strokeWidth=1;align=center;verticalAlign=middle;fontSize=12;shadow=1;fontStyle=1" vertex="1" parent="1">
+          <mxGeometry x="1020" y="120" width="80" height="50" as="geometry" />
+        </mxCell>
+        <mxCell id="MusicServiceTaker_serviceType" value="serviceType" style="shape=ellipse;fillColor=#d4e3f7;strokeColor=#6c8ebf;strokeWidth=1;align=center;verticalAlign=middle;fontSize=12;shadow=1;" vertex="1" parent="1">
+          <mxGeometry x="1120" y="120" width="80" height="50" as="geometry" />
+        </mxCell>
+        <mxCell id="line_taker_userId" value="" style="endArrow=none;html=1;rounded=0;entryX=0.25;entryY=0;entryDx=0;entryDy=0;exitX=0.25;exitY=1;exitDx=0;exitDy=0;strokeColor=#616161;strokeWidth=1;" edge="1" parent="1" source="MusicServiceTaker" target="MusicServiceTaker_userId">
+          <mxGeometry width="50" height="50" relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="line_taker_serviceType" value="" style="endArrow=none;html=1;rounded=0;entryX=0.75;entryY=0;entryDx=0;entryDy=0;exitX=0.75;exitY=1;exitDx=0;exitDy=0;strokeColor=#616161;strokeWidth=1;" edge="1" parent="1" source="MusicServiceTaker" target="MusicServiceTaker_serviceType">
+          <mxGeometry width="50" height="50" relative="1" as="geometry" />
+        </mxCell>
+
+        <!-- ========== 实体：Administrator（管理员） ========== -->
+        <mxCell id="Administrator" value="Administrator&#xa;管理员" style="shape=rectangle;fillColor=#fff2cc;strokeColor=#d6b656;strokeWidth=2;align=center;verticalAlign=middle;fontSize=16;rounded=0;shadow=1;fontStyle=1" vertex="1" parent="1">
+          <mxGeometry x="1000" y="400" width="140" height="70" as="geometry" />
+        </mxCell>
+        <mxCell id="Administrator_adminAccount" value="adminAccount&#xa;(PK)" style="shape=ellipse;fillColor=#d4e3f7;strokeColor=#6c8ebf;strokeWidth=1;align=center;verticalAlign=middle;fontSize=12;shadow=1;fontStyle=1" vertex="1" parent="1">
+          <mxGeometry x="1020" y="320" width="80" height="50" as="geometry" />
+        </mxCell>
+        <mxCell id="Administrator_adminPassword" value="adminPassword" style="shape=ellipse;fillColor=#d4e3f7;strokeColor=#6c8ebf;strokeWidth=1;align=center;verticalAlign=middle;fontSize=12;shadow=1;" vertex="1" parent="1">
+          <mxGeometry x="1120" y="320" width="80" height="50" as="geometry" />
+        </mxCell>
+        <mxCell id="line_admin_account" value="" style="endArrow=none;html=1;rounded=0;entryX=0.25;entryY=0;entryDx=0;entryDy=0;exitX=0.25;exitY=1;exitDx=0;exitDy=0;strokeColor=#616161;strokeWidth=1;" edge="1" parent="1" source="Administrator" target="Administrator_adminAccount">
+          <mxGeometry width="50" height="50" relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="line_admin_password" value="" style="endArrow=none;html=1;rounded=0;entryX=0.75;entryY=0;entryDx=0;entryDy=0;exitX=0.75;exitY=1;exitDx=0;exitDy=0;strokeColor=#616161;strokeWidth=1;" edge="1" parent="1" source="Administrator" target="Administrator_adminPassword">
+          <mxGeometry width="50" height="50" relative="1" as="geometry" />
+        </mxCell>
+
+        <!-- ========== 实体：Music（音乐） ========== -->
+        <mxCell id="Music" value="Music&#xa;音乐" style="shape=rectangle;fillColor=#fff2cc;strokeColor=#d6b656;strokeWidth=2;align=center;verticalAlign=middle;fontSize=16;rounded=0;shadow=1;fontStyle=1" vertex="1" parent="1">
+          <mxGeometry x="400" y="600" width="140" height="70" as="geometry" />
+        </mxCell>
+        <mxCell id="Music_musicId" value="musicId&#xa;(PK)" style="shape=ellipse;fillColor=#d4e3f7;strokeColor=#6c8ebf;strokeWidth=1;align=center;verticalAlign=middle;fontSize=12;shadow=1;fontStyle=1" vertex="1" parent="1">
+          <mxGeometry x="360" y="520" width="80" height="50" as="geometry" />
+        </mxCell>
+        <mxCell id="Music_title" value="title" style="shape=ellipse;fillColor=#d4e3f7;strokeColor=#6c8ebf;strokeWidth=1;align=center;verticalAlign=middle;fontSize=12;shadow=1;" vertex="1" parent="1">
+          <mxGeometry x="460" y="520" width="80" height="50" as="geometry" />
+        </mxCell>
+        <mxCell id="Music_lyrics" value="lyrics" style="shape=ellipse;fillColor=#d4e3f7;strokeColor=#6c8ebf;strokeWidth=1;align=center;verticalAlign=middle;fontSize=12;shadow=1;" vertex="1" parent="1">
+          <mxGeometry x="360" y="700" width="80" height="50" as="geometry" />
+        </mxCell>
+        <mxCell id="line_music_id" value="" style="endArrow=none;html=1;rounded=0;entryX=0.25;entryY=0;entryDx=0;entryDy=0;exitX=0.25;exitY=1;exitDx=0;exitDy=0;strokeColor=#616161;strokeWidth=1;" edge="1" parent="1" source="Music" target="Music_musicId">
+          <mxGeometry width="50" height="50" relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="line_music_title" value="" style="endArrow=none;html=1;rounded=0;entryX=0.75;entryY=0;entryDx=0;entryDy=0;exitX=0.75;exitY=1;exitDx=0;exitDy=0;strokeColor=#616161;strokeWidth=1;" edge="1" parent="1" source="Music" target="Music_title">
+          <mxGeometry width="50" height="50" relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="line_music_lyrics" value="" style="endArrow=none;html=1;rounded=0;entryX=0.25;entryY=1;entryDx=0;entryDy=0;exitX=0.25;exitY=0;exitDx=0;exitDy=0;strokeColor=#616161;strokeWidth=1;" edge="1" parent="1" source="Music" target="Music_lyrics">
+          <mxGeometry width="50" height="50" relative="1" as="geometry" />
+        </mxCell>
+
+        <!-- ========== 实体：OriginalWork（原创作品） ========== -->
+        <mxCell id="OriginalWork" value="OriginalWork&#xa;原创作品" style="shape=rectangle;fillColor=#fff2cc;strokeColor=#d6b656;strokeWidth=2;align=center;verticalAlign=middle;fontSize=16;rounded=0;shadow=1;fontStyle=1" vertex="1" parent="1">
+          <mxGeometry x="700" y="600" width="140" height="70" as="geometry" />
+        </mxCell>
+        <mxCell id="OriginalWork_workId" value="workId&#xa;(PK)" style="shape=ellipse;fillColor=#d4e3f7;strokeColor=#6c8ebf;strokeWidth=1;align=center;verticalAlign=middle;fontSize=12;shadow=1;fontStyle=1" vertex="1" parent="1">
+          <mxGeometry x="660" y="520" width="80" height="50" as="geometry" />
+        </mxCell>
+        <mxCell id="OriginalWork_content" value="content" style="shape=ellipse;fillColor=#d4e3f7;strokeColor=#6c8ebf;strokeWidth=1;align=center;verticalAlign=middle;fontSize=12;shadow=1;" vertex="1" parent="1">
+          <mxGeometry x="760" y="520" width="80" height="50" as="geometry" />
+        </mxCell>
+        <mxCell id="OriginalWork_created" value="created" style="shape=ellipse;fillColor=#d4e3f7;strokeColor=#6c8ebf;strokeWidth=1;align=center;verticalAlign=middle;fontSize=12;shadow=1;" vertex="1" parent="1">
+          <mxGeometry x="660" y="700" width="80" height="50" as="geometry" />
+        </mxCell>
+        <mxCell id="OriginalWork_creator" value="creator" style="shape=ellipse;fillColor=#d4e3f7;strokeColor=#6c8ebf;strokeWidth=1;align=center;verticalAlign=middle;fontSize=12;shadow=1;" vertex="1" parent="1">
+          <mxGeometry x="760" y="700" width="80" height="50" as="geometry" />
+        </mxCell>
+        <mxCell id="line_work_id" value="" style="endArrow=none;html=1;rounded=0;entryX=0.25;entryY=0;entryDx=0;entryDy=0;exitX=0.25;exitY=1;exitDx=0;exitDy=0;strokeColor=#616161;strokeWidth=1;" edge="1" parent="1" source="OriginalWork" target="OriginalWork_workId">
+          <mxGeometry width="50" height="50" relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="line_work_content" value="" style="endArrow=none;html=1;rounded=0;entryX=0.75;entryY=0;entryDx=0;entryDy=0;exitX=0.75;exitY=1;exitDx=0;exitDy=0;strokeColor=#616161;strokeWidth=1;" edge="1" parent="1" source="OriginalWork" target="OriginalWork_content">
+          <mxGeometry width="50" height="50" relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="line_work_created" value="" style="endArrow=none;html=1;rounded=0;entryX=0.25;entryY=1;entryDx=0;entryDy=0;exitX=0.25;exitY=0;exitDx=0;exitDy=0;strokeColor=#616161;strokeWidth=1;" edge="1" parent="1" source="OriginalWork" target="OriginalWork_created">
+          <mxGeometry width="50" height="50" relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="line_work_creator" value="" style="endArrow=none;html=1;rounded=0;entryX=0.75;entryY=1;entryDx=0;entryDy=0;exitX=0.75;exitY=0;exitDx=0;exitDy=0;strokeColor=#616161;strokeWidth=1;" edge="1" parent="1" source="OriginalWork" target="OriginalWork_creator">
+          <mxGeometry width="50" height="50" relative="1" as="geometry" />
+        </mxCell>
+
+        <!-- ========== 实体：ForumPost（论坛帖子） ========== -->
+        <mxCell id="ForumPost" value="ForumPost&#xa;论坛帖子" style="shape=rectangle;fillColor=#fff2cc;strokeColor=#d6b656;strokeWidth=2;align=center;verticalAlign=middle;fontSize=16;rounded=0;shadow=1;fontStyle=1" vertex="1" parent="1">
+          <mxGeometry x="400" y="800" width="140" height="70" as="geometry" />
+        </mxCell>
+        <mxCell id="ForumPost_postId" value="postId&#xa;(PK)" style="shape=ellipse;fillColor=#d4e3f7;strokeColor=#6c8ebf;strokeWidth=1;align=center;verticalAlign=middle;fontSize=12;shadow=1;fontStyle=1" vertex="1" parent="1">
+          <mxGeometry x="360" y="720" width="80" height="50" as="geometry" />
+        </mxCell>
+        <mxCell id="ForumPost_content" value="content" style="shape=ellipse;fillColor=#d4e3f7;strokeColor=#6c8ebf;strokeWidth=1;align=center;verticalAlign=middle;fontSize=12;shadow=1;" vertex="1" parent="1">
+          <mxGeometry x="460" y="720" width="80" height="50" as="geometry" />
+        </mxCell>
+        <mxCell id="ForumPost_created" value="created" style="shape=ellipse;fillColor=#d4e3f7;strokeColor=#6c8ebf;strokeWidth=1;align=center;verticalAlign=middle;fontSize=12;shadow=1;" vertex="1" parent="1">
+          <mxGeometry x="360" y="900" width="80" height="50" as="geometry" />
+        </mxCell>
+        <mxCell id="ForumPost_replyCount" value="replyCount" style="shape=ellipse;fillColor=#d4e3f7;strokeColor=#6c8ebf;strokeWidth=1;align=center;verticalAlign=middle;fontSize=12;shadow=1;" vertex="1" parent="1">
+          <mxGeometry x="460" y="900" width="80" height="50" as="geometry" />
+        </mxCell>
+        <mxCell id="ForumPost_auditStatus" value="auditStatus" style="shape=ellipse;fillColor=#d4e3f7;strokeColor=#6c8ebf;strokeWidth=1;align=center;verticalAlign=middle;fontSize=12;shadow=1;" vertex="1" parent="1">
+          <mxGeometry x="560" y="900" width="80" height="50" as="geometry" />
+        </mxCell>
+        <mxCell id="line_post_id" value="" style="endArrow=none;html=1;rounded=0;entryX=0.25;entryY=0;entryDx=0;entryDy=0;exitX=0.25;exitY=1;exitDx=0;exitDy=0;strokeColor=#616161;strokeWidth=1;" edge="1" parent="1" source="ForumPost" target="ForumPost_postId">
+          <mxGeometry width="50" height="50" relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="line_post_content" value="" style="endArrow=none;html=1;rounded=0;entryX=0.75;entryY=0;entryDx=0;entryDy=0;exitX=0.75;exitY=1;exitDx=0;exitDy=0;strokeColor=#616161;strokeWidth=1;" edge="1" parent="1" source="ForumPost" target="ForumPost_content">
+          <mxGeometry width="50" height="50" relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="line_post_created" value="" style="endArrow=none;html=1;rounded=0;entryX=0.25;entryY=1;entryDx=0;entryDy=0;exitX=0.25;exitY=0;exitDx=0;exitDy=0;strokeColor=#616161;strokeWidth=1;" edge="1" parent="1" source="ForumPost" target="ForumPost_created">
+          <mxGeometry width="50" height="50" relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="line_post_replyCount" value="" style="endArrow=none;html=1;rounded=0;entryX=0.5;entryY=1;entryDx=0;entryDy=0;exitX=0.5;exitY=0;exitDx=0;exitDy=0;strokeColor=#616161;strokeWidth=1;" edge="1" parent="1" source="ForumPost" target="ForumPost_replyCount">
+          <mxGeometry width="50" height="50" relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="line_post_auditStatus" value="" style="endArrow=none;html=1;rounded=0;entryX=0.75;entryY=1;entryDx=0;entryDy=0;exitX=0.75;exitY=0;exitDx=0;exitDy=0;strokeColor=#616161;strokeWidth=1;" edge="1" parent="1" source="ForumPost" target="ForumPost_auditStatus">
+          <mxGeometry width="50" height="50" relative="1" as="geometry" />
+        </mxCell>
+
+        <!-- ========== 实体：PostReply（帖子回复） ========== -->
+        <mxCell id="PostReply" value="PostReply&#xa;帖子回复" style="shape=rectangle;fillColor=#fff2cc;strokeColor=#d6b656;strokeWidth=2;align=center;verticalAlign=middle;fontSize=16;rounded=0;shadow=1;fontStyle=1" vertex="1" parent="1">
+          <mxGeometry x="700" y="800" width="140" height="70" as="geometry" />
+        </mxCell>
+        <mxCell id="PostReply_replyId" value="replyId&#xa;(PK)" style="shape=ellipse;fillColor=#d4e3f7;strokeColor=#6c8ebf;strokeWidth=1;align=center;verticalAlign=middle;fontSize=12;shadow=1;fontStyle=1" vertex="1" parent="1">
+          <mxGeometry x="660" y="720" width="80" height="50" as="geometry" />
+        </mxCell>
+        <mxCell id="PostReply_postId" value="postId&#xa;(FK)" style="shape=ellipse;fillColor=#d4e3f7;strokeColor=#6c8ebf;strokeWidth=1;align=center;verticalAlign=middle;fontSize=12;shadow=1;fontStyle=1" vertex="1" parent="1">
+          <mxGeometry x="760" y="720" width="80" height="50" as="geometry" />
+        </mxCell>
+        <mxCell id="PostReply_content" value="content" style="shape=ellipse;fillColor=#d4e3f7;strokeColor=#6c8ebf;strokeWidth=1;align=center;verticalAlign=middle;fontSize=12;shadow=1;" vertex="1" parent="1">
+          <mxGeometry x="660" y="900" width="80" height="50" as="geometry" />
+        </mxCell>
+        <mxCell id="PostReply_created" value="created" style="shape=ellipse;fillColor=#d4e3f7;strokeColor=#6c8ebf;strokeWidth=1;align=center;verticalAlign=middle;fontSize=12;shadow=1;" vertex="1" parent="1">
+          <mxGeometry x="760" y="900" width="80" height="50" as="geometry" />
+        </mxCell>
+        <mxCell id="line_reply_id" value="" style="endArrow=none;html=1;rounded=0;entryX=0.25;entryY=0;entryDx=0;entryDy=0;exitX=0.25;exitY=1;exitDx=0;exitDy=0;strokeColor=#616161;strokeWidth=1;" edge="1" parent="1" source="PostReply" target="PostReply_replyId">
+          <mxGeometry width="50" height="50" relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="line_reply_postId" value="" style="endArrow=none;html=1;rounded=0;entryX=0.75;entryY=0;entryDx=0;entryDy=0;exitX=0.75;exitY=1;exitDx=0;exitDy=0;strokeColor=#616161;strokeWidth=1;" edge="1" parent="1" source="PostReply" target="PostReply_postId">
+          <mxGeometry width="50" height="50" relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="line_reply_content" value="" style="endArrow=none;html=1;rounded=0;entryX=0.25;entryY=1;entryDx=0;entryDy=0;exitX=0.25;exitY=0;exitDx=0;exitDy=0;strokeColor=#616161;strokeWidth=1;" edge="1" parent="1" source="PostReply" target="PostReply_content">
+          <mxGeometry width="50" height="50" relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="line_reply_created" value="" style="endArrow=none;html=1;rounded=0;entryX=0.75;entryY=1;entryDx=0;entryDy=0;exitX=0.75;exitY=0;exitDx=0;exitDy=0;strokeColor=#616161;strokeWidth=1;" edge="1" parent="1" source="PostReply" target="PostReply_created">
+          <mxGeometry width="50" height="50" relative="1" as="geometry" />
+        </mxCell>
+
+        <!-- ========== 实体：AuditRecord（审核记录） ========== -->
+        <mxCell id="AuditRecord" value="AuditRecord&#xa;审核记录" style="shape=rectangle;fillColor=#fff2cc;strokeColor=#d6b656;strokeWidth=2;align=center;verticalAlign=middle;fontSize=16;rounded=0;shadow=1;fontStyle=1" vertex="1" parent="1">
+          <mxGeometry x="1000" y="600" width="140" height="70" as="geometry" />
+        </mxCell>
+        <mxCell id="AuditRecord_auditId" value="auditId&#xa;(PK)" style="shape=ellipse;fillColor=#d4e3f7;strokeColor=#6c8ebf;strokeWidth=1;align=center;verticalAlign=middle;fontSize=12;shadow=1;fontStyle=1" vertex="1" parent="1">
+          <mxGeometry x="960" y="520" width="80" height="50" as="geometry" />
+        </mxCell>
+        <mxCell id="AuditRecord_contentType" value="contentType" style="shape=ellipse;fillColor=#d4e3f7;strokeColor=#6c8ebf;strokeWidth=1;align=center;verticalAlign=middle;fontSize=12;shadow=1;" vertex="1" parent="1">
+          <mxGeometry x="1060" y="520" width="80" height="50" as="geometry" />
+        </mxCell>
+        <mxCell id="AuditRecord_auditContent" value="auditContent" style="shape=ellipse;fillColor=#d4e3f7;strokeColor=#6c8ebf;strokeWidth=1;align=center;verticalAlign=middle;fontSize=12;shadow=1;" vertex="1" parent="1">
+          <mxGeometry x="1160" y="520" width="80" height="50" as="geometry" />
+        </mxCell>
+        <mxCell id="AuditRecord_auditOpinion" value="auditOpinion" style="shape=ellipse;fillColor=#d4e3f7;strokeColor=#6c8ebf;strokeWidth=1;align=center;verticalAlign=middle;fontSize=12;shadow=1;" vertex="1" parent="1">
+          <mxGeometry x="1020" y="700" width="80" height="50" as="geometry" />
+        </mxCell>
+        <mxCell id="line_audit_id" value="" style="endArrow=none;html=1;rounded=0;entryX=0.25;entryY=0;entryDx=0;entryDy=0;exitX=0.25;exitY=1;exitDx=0;exitDy=0;strokeColor=#616161;strokeWidth=1;" edge="1" parent="1" source="AuditRecord" target="AuditRecord_auditId">
+          <mxGeometry width="50" height="50" relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="line_audit_contentType" value="" style="endArrow=none;html=1;rounded=0;entryX=0.5;entryY=0;entryDx=0;entryDy=0;exitX=0.5;exitY=1;exitDx=0;exitDy=0;strokeColor=#616161;strokeWidth=1;" edge="1" parent="1" source="AuditRecord" target="AuditRecord_contentType">
+          <mxGeometry width="50" height="50" relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="line_audit_auditContent" value="" style="endArrow=none;html=1;rounded=0;entryX=0.75;entryY=0;entryDx=0;entryDy=0;exitX=0.75;exitY=1;exitDx=0;exitDy=0;strokeColor=#616161;strokeWidth=1;" edge="1" parent="1" source="AuditRecord" target="AuditRecord_auditContent">
+          <mxGeometry width="50" height="50" relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="line_audit_auditOpinion" value="" style="endArrow=none;html=1;rounded=0;entryX=0.5;entryY=1;entryDx=0;entryDy=0;exitX=0.5;exitY=0;exitDx=0;exitDy=0;strokeColor=#616161;strokeWidth=1;" edge="1" parent="1" source="AuditRecord" target="AuditRecord_auditOpinion">
+          <mxGeometry width="50" height="50" relative="1" as="geometry" />
+        </mxCell>
+
+        <!-- ========== 关系：BaseUser 1:1 MusicEnthusiast ========== -->
+        <mxCell id="rel_baseuser_enthusiast" value="拥有" style="rhombus;whiteSpace=wrap;html=1;fillColor=#f8cecc;strokeColor=#b85450;shadow=1;fontSize=14;fontStyle=1" vertex="1" parent="1">
+          <mxGeometry x="100" y="300" width="80" height="60" as="geometry" />
+        </mxCell>
+        <mxCell id="rel_baseuser_enthusiast_1" value="1" style="endArrow=none;html=1;rounded=0;exitX=0.5;exitY=0;exitDx=0;exitDy=0;entryX=0.5;entryY=1;entryDx=0;entryDy=0;strokeColor=#6c8ebf;strokeWidth=2;fillColor=#dae8fc;" edge="1" parent="1" source="BaseUser" target="rel_baseuser_enthusiast">
+          <mxGeometry width="50" height="50" relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="rel_baseuser_enthusiast_2" value="1" style="endArrow=none;html=1;rounded=0;exitX=0.5;exitY=1;exitDx=0;exitDy=0;entryX=0.5;entryY=0;entryDx=0;entryDy=0;strokeColor=#6c8ebf;strokeWidth=2;fillColor=#dae8fc;" edge="1" parent="1" source="rel_baseuser_enthusiast" target="MusicEnthusiast">
+          <mxGeometry width="50" height="50" relative="1" as="geometry" />
+        </mxCell>
+
+        <!-- ========== 关系：BaseUser 1:1 MusicCreator ========== -->
+        <mxCell id="rel_baseuser_creator" value="拥有" style="rhombus;whiteSpace=wrap;html=1;fillColor=#f8cecc;strokeColor=#b85450;shadow=1;fontSize=14;fontStyle=1" vertex="1" parent="1">
+          <mxGeometry x="400" y="300" width="80" height="60" as="geometry" />
+        </mxCell>
+        <mxCell id="rel_baseuser_creator_1" value="1" style="endArrow=none;html=1;rounded=0;exitX=0.75;exitY=0;exitDx=0;exitDy=0;entryX=0.25;entryY=1;entryDx=0;entryDy=0;strokeColor=#6c8ebf;strokeWidth=2;fillColor=#dae8fc;" edge="1" parent="1" source="BaseUser" target="rel_baseuser_creator">
+          <mxGeometry width="50" height="50" relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="rel_baseuser_creator_2" value="1" style="endArrow=none;html=1;rounded=0;exitX=0.5;exitY=1;exitDx=0;exitDy=0;entryX=0.5;entryY=0;entryDx=0;entryDy=0;strokeColor=#6c8ebf;strokeWidth=2;fillColor=#dae8fc;" edge="1" parent="1" source="rel_baseuser_creator" target="MusicCreator">
+          <mxGeometry width="50" height="50" relative="1" as="geometry" />
+        </mxCell>
+
+        <!-- ========== 关系：BaseUser 1:1 MusicRequirementPublisher ========== -->
+        <mxCell id="rel_baseuser_publisher" value="拥有" style="rhombus;whiteSpace=wrap;html=1;fillColor=#f8cecc;strokeColor=#b85450;shadow=1;fontSize=14;fontStyle=1" vertex="1" parent="1">
+          <mxGeometry x="700" y="300" width="80" height="60" as="geometry" />
+        </mxCell>
+        <mxCell id="rel_baseuser_publisher_1" value="1" style="endArrow=none;html=1;rounded=0;exitX=1;exitY=0.25;exitDx=0;exitDy=0;entryX=0.25;entryY=1;entryDx=0;entryDy=0;strokeColor=#6c8ebf;strokeWidth=2;fillColor=#dae8fc;" edge="1" parent="1" source="BaseUser" target="rel_baseuser_publisher">
+          <mxGeometry width="50" height="50" relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="rel_baseuser_publisher_2" value="1" style="endArrow=none;html=1;rounded=0;exitX=0.5;exitY=1;exitDx=0;exitDy=0;entryX=0.5;entryY=0;entryDx=0;entryDy=0;strokeColor=#6c8ebf;strokeWidth=2;fillColor=#dae8fc;" edge="1" parent="1" source="rel_baseuser_publisher" target="MusicRequirementPublisher">
+          <mxGeometry width="50" height="50" relative="1" as="geometry" />
+        </mxCell>
+
+        <!-- ========== 关系：BaseUser 1:1 MusicServiceTaker ========== -->
+        <mxCell id="rel_baseuser_taker" value="拥有" style="rhombus;whiteSpace=wrap;html=1;fillColor=#f8cecc;strokeColor=#b85450;shadow=1;fontSize=14;fontStyle=1" vertex="1" parent="1">
+          <mxGeometry x="1000" y="300" width="80" height="60" as="geometry" />
+        </mxCell>
+        <mxCell id="rel_baseuser_taker_1" value="1" style="endArrow=none;html=1;rounded=0;exitX=1;exitY=0.5;exitDx=0;exitDy=0;entryX=0.25;entryY=1;entryDx=0;entryDy=0;strokeColor=#6c8ebf;strokeWidth=2;fillColor=#dae8fc;" edge="1" parent="1" source="BaseUser" target="rel_baseuser_taker">
+          <mxGeometry width="50" height="50" relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="rel_baseuser_taker_2" value="1" style="endArrow=none;html=1;rounded=0;exitX=0.5;exitY=1;exitDx=0;exitDy=0;entryX=0.5;entryY=0;entryDx=0;entryDy=0;strokeColor=#6c8ebf;strokeWidth=2;fillColor=#dae8fc;" edge="1" parent="1" source="rel_baseuser_taker" target="MusicServiceTaker">
+          <mxGeometry width="50" height="50" relative="1" as="geometry" />
+        </mxCell>
+
+        <!-- ========== 关系：MusicEnthusiast N:M Music（收藏） ========== -->
+        <mxCell id="rel_enthusiast_music" value="收藏" style="rhombus;whiteSpace=wrap;html=1;fillColor=#f8cecc;strokeColor=#b85450;shadow=1;fontSize=14;fontStyle=1" vertex="1" parent="1">
+          <mxGeometry x="250" y="400" width="80" height="60" as="geometry" />
+        </mxCell>
+        <mxCell id="rel_enthusiast_music_1" value="N" style="endArrow=none;html=1;rounded=0;exitX=1;exitY=0.5;exitDx=0;exitDy=0;entryX=0;entryY=0.5;entryDx=0;entryDy=0;strokeColor=#6c8ebf;strokeWidth=2;fillColor=#dae8fc;" edge="1" parent="1" source="MusicEnthusiast" target="rel_enthusiast_music">
+          <mxGeometry width="50" height="50" relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="rel_enthusiast_music_2" value="M" style="endArrow=none;html=1;rounded=0;exitX=1;exitY=0.5;exitDx=0;exitDy=0;entryX=0;entryY=0.5;entryDx=0;entryDy=0;strokeColor=#6c8ebf;strokeWidth=2;fillColor=#dae8fc;" edge="1" parent="1" source="rel_enthusiast_music" target="Music">
+          <mxGeometry width="50" height="50" relative="1" as="geometry" />
+        </mxCell>
+
+        <!-- ========== 关系：MusicCreator 1:N OriginalWork（发布） ========== -->
+        <mxCell id="rel_creator_work" value="发布" style="rhombus;whiteSpace=wrap;html=1;fillColor=#f8cecc;strokeColor=#b85450;shadow=1;fontSize=14;fontStyle=1" vertex="1" parent="1">
+          <mxGeometry x="550" y="400" width="80" height="60" as="geometry" />
+        </mxCell>
+        <mxCell id="rel_creator_work_1" value="1" style="endArrow=none;html=1;rounded=0;exitX=1;exitY=0.5;exitDx=0;exitDy=0;entryX=0;entryY=0.5;entryDx=0;entryDy=0;strokeColor=#6c8ebf;strokeWidth=2;fillColor=#dae8fc;" edge="1" parent="1" source="MusicCreator" target="rel_creator_work">
+          <mxGeometry width="50" height="50" relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="rel_creator_work_2" value="N" style="endArrow=none;html=1;rounded=0;exitX=1;exitY=0.5;exitDx=0;exitDy=0;entryX=0;entryY=0.5;entryDx=0;entryDy=0;strokeColor=#6c8ebf;strokeWidth=2;fillColor=#dae8fc;" edge="1" parent="1" source="rel_creator_work" target="OriginalWork">
+          <mxGeometry width="50" height="50" relative="1" as="geometry" />
+        </mxCell>
+
+        <!-- ========== 关系：BaseUser 1:N ForumPost（发布） ========== -->
+        <mxCell id="rel_user_post" value="发布" style="rhombus;whiteSpace=wrap;html=1;fillColor=#f8cecc;strokeColor=#b85450;shadow=1;fontSize=14;fontStyle=1" vertex="1" parent="1">
+          <mxGeometry x="250" y="600" width="80" height="60" as="geometry" />
+        </mxCell>
+        <mxCell id="rel_user_post_1" value="1" style="endArrow=none;html=1;rounded=0;exitX=0.5;exitY=1;exitDx=0;exitDy=0;entryX=0.25;entryY=1;entryDx=0;entryDy=0;strokeColor=#6c8ebf;strokeWidth=2;fillColor=#dae8fc;" edge="1" parent="1" source="BaseUser" target="rel_user_post">
+          <mxGeometry width="50" height="50" relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="rel_user_post_2" value="N" style="endArrow=none;html=1;rounded=0;exitX=1;exitY=0.5;exitDx=0;exitDy=0;entryX=0;entryY=0.5;entryDx=0;entryDy=0;strokeColor=#6c8ebf;strokeWidth=2;fillColor=#dae8fc;" edge="1" parent="1" source="rel_user_post" target="ForumPost">
+          <mxGeometry width="50" height="50" relative="1" as="geometry" />
+        </mxCell>
+
+        <!-- ========== 关系：ForumPost 1:N PostReply（回复） ========== -->
+        <mxCell id="rel_post_reply" value="回复" style="rhombus;whiteSpace=wrap;html=1;fillColor=#f8cecc;strokeColor=#b85450;shadow=1;fontSize=14;fontStyle=1" vertex="1" parent="1">
+          <mxGeometry x="550" y="800" width="80" height="60" as="geometry" />
+        </mxCell>
+        <mxCell id="rel_post_reply_1" value="1" style="endArrow=none;html=1;rounded=0;exitX=1;exitY=0.5;exitDx=0;exitDy=0;entryX=0;entryY=0.5;entryDx=0;entryDy=0;strokeColor=#6c8ebf;strokeWidth=2;fillColor=#dae8fc;" edge="1" parent="1" source="ForumPost" target="rel_post_reply">
+          <mxGeometry width="50" height="50" relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="rel_post_reply_2" value="N" style="endArrow=none;html=1;rounded=0;exitX=1;exitY=0.5;exitDx=0;exitDy=0;entryX=0;entryY=0.5;entryDx=0;entryDy=0;strokeColor=#6c8ebf;strokeWidth=2;fillColor=#dae8fc;" edge="1" parent="1" source="rel_post_reply" target="PostReply">
+          <mxGeometry width="50" height="50" relative="1" as="geometry" />
+        </mxCell>
+
+        <!-- ========== 关系：Music 1:N AuditRecord（审核） ========== -->
+        <mxCell id="rel_music_audit" value="审核" style="rhombus;whiteSpace=wrap;html=1;fillColor=#f8cecc;strokeColor=#b85450;shadow=1;fontSize=14;fontStyle=1" vertex="1" parent="1">
+          <mxGeometry x="550" y="600" width="80" height="60" as="geometry" />
+        </mxCell>
+        <mxCell id="rel_music_audit_1" value="1" style="endArrow=none;html=1;rounded=0;exitX=1;exitY=0.5;exitDx=0;exitDy=0;entryX=0;entryY=0.5;entryDx=0;entryDy=0;strokeColor=#6c8ebf;strokeWidth=2;fillColor=#dae8fc;" edge="1" parent="1" source="Music" target="rel_music_audit">
+          <mxGeometry width="50" height="50" relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="rel_music_audit_2" value="N" style="endArrow=none;html=1;rounded=0;exitX=1;exitY=0.5;exitDx=0;exitDy=0;entryX=0;entryY=0.5;entryDx=0;entryDy=0;strokeColor=#6c8ebf;strokeWidth=2;fillColor=#dae8fc;" edge="1" parent="1" source="rel_music_audit" target="AuditRecord">
+          <mxGeometry width="50" height="50" relative="1" as="geometry" />
+        </mxCell>
+
+        <!-- ========== 关系：OriginalWork 1:N AuditRecord（审核） ========== -->
+        <mxCell id="rel_work_audit" value="审核" style="rhombus;whiteSpace=wrap;html=1;fillColor=#f8cecc;strokeColor=#b85450;shadow=1;fontSize=14;fontStyle=1" vertex="1" parent="1">
+          <mxGeometry x="850" y="600" width="80" height="60" as="geometry" />
+        </mxCell>
+        <mxCell id="rel_work_audit_1" value="1" style="endArrow=none;html=1;rounded=0;exitX=1;exitY=0.5;exitDx=0;exitDy=0;entryX=0;entryY=0.5;entryDx=0;entryDy=0;strokeColor=#6c8ebf;strokeWidth=2;fillColor=#dae8fc;" edge="1" parent="1" source="OriginalWork" target="rel_work_audit">
+          <mxGeometry width="50" height="50" relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="rel_work_audit_2" value="N" style="endArrow=none;html=1;rounded=0;exitX=1;exitY=0.5;exitDx=0;exitDy=0;entryX=0;entryY=0.5;entryDx=0;entryDy=0;strokeColor=#6c8ebf;strokeWidth=2;fillColor=#dae8fc;" edge="1" parent="1" source="rel_work_audit" target="AuditRecord">
+          <mxGeometry width="50" height="50" relative="1" as="geometry" />
+        </mxCell>
+
+        <!-- ========== 关系：ForumPost 1:N AuditRecord（审核） ========== -->
+        <mxCell id="rel_post_audit" value="审核" style="rhombus;whiteSpace=wrap;html=1;fillColor=#f8cecc;strokeColor=#b85450;shadow=1;fontSize=14;fontStyle=1" vertex="1" parent="1">
+          <mxGeometry x="550" y="700" width="80" height="60" as="geometry" />
+        </mxCell>
+        <mxCell id="rel_post_audit_1" value="1" style="endArrow=none;html=1;rounded=0;exitX=0.5;exitY=0;exitDx=0;exitDy=0;entryX=0.5;entryY=1;entryDx=0;entryDy=0;strokeColor=#6c8ebf;strokeWidth=2;fillColor=#dae8fc;" edge="1" parent="1" source="ForumPost" target="rel_post_audit">
+          <mxGeometry width="50" height="50" relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="rel_post_audit_2" value="N" style="endArrow=none;html=1;rounded=0;exitX=1;exitY=0.5;exitDx=0;exitDy=0;entryX=0;entryY=0.5;entryDx=0;entryDy=0;strokeColor=#6c8ebf;strokeWidth=2;fillColor=#dae8fc;" edge="1" parent="1" source="rel_post_audit" target="AuditRecord">
+          <mxGeometry width="50" height="50" relative="1" as="geometry" />
+        </mxCell>
+
+        <!-- ========== 关系：Administrator 1:N AuditRecord（处理） ========== -->
+        <mxCell id="rel_admin_audit" value="处理" style="rhombus;whiteSpace=wrap;html=1;fillColor=#f8cecc;strokeColor=#b85450;shadow=1;fontSize=14;fontStyle=1" vertex="1" parent="1">
+          <mxGeometry x="1000" y="500" width="80" height="60" as="geometry" />
+        </mxCell>
+        <mxCell id="rel_admin_audit_1" value="1" style="endArrow=none;html=1;rounded=0;exitX=0.5;exitY=1;exitDx=0;exitDy=0;entryX=0.5;entryY=0;entryDx=0;entryDy=0;strokeColor=#6c8ebf;strokeWidth=2;fillColor=#dae8fc;" edge="1" parent="1" source="Administrator" target="rel_admin_audit">
+          <mxGeometry width="50" height="50" relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="rel_admin_audit_2" value="N" style="endArrow=none;html=1;rounded=0;exitX=0.5;exitY=1;exitDx=0;exitDy=0;entryX=0.5;entryY=0;entryDx=0;entryDy=0;strokeColor=#6c8ebf;strokeWidth=2;fillColor=#dae8fc;" edge="1" parent="1" source="rel_admin_audit" target="AuditRecord">
+          <mxGeometry width="50" height="50" relative="1" as="geometry" />
+        </mxCell>
+
+      </root>
+    </mxGraphModel>
+  </diagram>
+</mxfile>
+
